@@ -25,3 +25,11 @@ class FormFieldName(models.Model):
     field_name = models.CharField(_('Field'),max_length=20,null=True)
     value = models.CharField(_('values if needed'),null=True,blank=True)
     field_type = models.ForeignKey(FormFieldType,on_delete=models.RESTRICT)
+
+class Orders(models.Model):
+    service = models.ForeignKey(Services,on_delete=models.CASCADE,null=False)
+
+class KeyValue(models.Model):
+    key = models.CharField(_('Key'),max_length=30,null=False,blank=False)
+    value = models.CharField(_('Value'),max_length=30,null=False,blank=False)
+    modelOf = models.ForeignKey(Orders, on_delete=models.CASCADE,null=False,blank=False)
