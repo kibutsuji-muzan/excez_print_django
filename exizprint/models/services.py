@@ -21,13 +21,13 @@ class FormFieldType(models.Model):
         return self.name
 
 class FormFieldName(models.Model):
-    Service = models.ForeignKey(Services, on_delete=models.RESTRICT,null=True)
+    Service = models.ForeignKey(Services, on_delete=models.RESTRICT,null=True,related_name='field')
     field_name = models.CharField(_('Field'),max_length=20,null=True)
     value = models.CharField(_('values if needed'),null=True,blank=True)
-    field_type = models.ForeignKey(FormFieldType,on_delete=models.RESTRICT)
+    field_type = models.ForeignKey(FormFieldType,on_delete=models.RESTRICT, related_name='field_type_of')
 
 class Orders(models.Model):
-    service = models.ForeignKey(Services,on_delete=models.CASCADE,null=False)
+    service = models.ForeignKey(Services,on_delete=models.CASCADE,null=False, related_name='order_of')
 
 class KeyValue(models.Model):
     key = models.CharField(_('Key'),max_length=30,null=False,blank=False)
