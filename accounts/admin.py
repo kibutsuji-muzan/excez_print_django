@@ -2,12 +2,10 @@ from django.contrib import admin
 
 from django.contrib.sessions.models import Session
 
-from accounts.models.UserModel import User, PassResetToken, Salt, UserProfile
+from accounts.models.UserModel import User, PassResetToken, Salt
 from accounts.models.OTPModel import VerificationDevice, OTPToken
 
 
-class UserProfileInline(admin.StackedInline):
-    model = UserProfile
 
 class VerificationDeviceInline(admin.StackedInline):
     model = VerificationDevice
@@ -45,9 +43,6 @@ class Admin(admin.ModelAdmin):
     # inlines = [UserProfileInline, VerificationDeviceInline]
     list_display = ('__str__',)
 
-@admin.register(UserProfile)
-class Admin(admin.ModelAdmin):
-      list_display = ('__str__',)
 
 @admin.register(PassResetToken)
 class PassRestTokenAdmin(admin.ModelAdmin):

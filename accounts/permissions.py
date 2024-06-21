@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from accounts.models.UserModel import User, UserType
+from accounts.models.UserModel import User
 
 class IsSameUser(BasePermission):
 
@@ -19,17 +19,17 @@ class IsSameUser(BasePermission):
     def has_object_permission(self, request, view, obj):
         return self.permission(request)
 
-class IsTutor(BasePermission):
+# class IsTutor(BasePermission):
 
-    def permission(self, request):
-        user = request.user
-        type = UserType.objects.get(name='Tutor')
-        if type in user.user_profile.type.all():
-            return True
-        return False
+#     def permission(self, request):
+#         user = request.user
+#         type = UserType.objects.get(name='Tutor')
+#         if type in user.user_profile.type.all():
+#             return True
+#         return False
 
-    def has_permission(self, request, view):
-        return self.permission(request)
+#     def has_permission(self, request, view):
+#         return self.permission(request)
         
-    def has_object_permission(self, request, view, obj):
-        return self.permission(request)
+#     def has_object_permission(self, request, view, obj):
+#         return self.permission(request)

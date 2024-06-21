@@ -6,7 +6,7 @@ from django.db import models
 
 from time import time
 from binascii import unhexlify
-from accounts.models.UserModel import User, expiryTime, default_key
+from accounts.models.UserModel import User, expiryTime, default_key, ranint
 
 
 class VerificationDevice(Device):
@@ -15,7 +15,7 @@ class VerificationDevice(Device):
     secret_key = models.CharField(
         _("Secret Key"),
         max_length=40,
-        default=default_key,
+        default=default_key(ranint(10,20)),
         validators=[hex_validator],
         help_text="Hex-encoded secret key to generate totp tokens.",
         unique=True,
@@ -76,7 +76,7 @@ class VerificationDevice(Device):
         verbose_name_plural = _("Verification Devices")
 
     def __str__(self):
-        return str(self.user.user)
+        return str(self.user.phone)
 
 class OTPToken(models.Model):
 

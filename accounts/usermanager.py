@@ -4,11 +4,11 @@ from django.contrib.auth.hashers import make_password
 class UserManager(UserManager):
     use_in_migrations = True
 
-    def _create_user(self, user, password=None, **extra_fields):
-        if not user:
+    def _create_user(self, email, password=None, **extra_fields):
+        if not email:
             raise ValueError('The given email must be set')
         else:
-            user = self.model(user = user, **extra_fields)
+            user = self.model(email = email, **extra_fields)
             user.set_password(password)
             user.save()
             return user
@@ -28,7 +28,7 @@ class UserManager(UserManager):
         return self._create_user(user, password, **extra_fields)
         
 
-    def create_superuser(self, user, password=None, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -37,4 +37,4 @@ class UserManager(UserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
         
-        return self._create_user(user, password, **extra_fields)
+        return self._create_user(email, password, **extra_fields)

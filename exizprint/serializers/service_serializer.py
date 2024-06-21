@@ -1,26 +1,77 @@
 from rest_framework import serializers
-from exizprint.models.services import Services, FormFieldName, FormFieldType, Orders, KeyValue
+from exizprint.models.services import (
+    Services,
+    FormFieldName,
+    FormFieldType,
+    Orders,
+    KeyValue,
+)
+
 
 class FieldTypeSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = FormFieldType
-        fields= ['name']
+        fields = ["name"]
+
 
 class FormFieldNameSerializer(serializers.ModelSerializer):
     field_type = FieldTypeSerializer(many=False)
+
     class Meta:
         model = FormFieldName
         fields = ["field_name", "value", "field_type"]
 
+
 class ServiceSerializer(serializers.ModelSerializer):
     field = FormFieldNameSerializer(many=True)
+
     class Meta:
         model = Services
-        fields = ["name", "id",'desc', "field"]
+        fields = ["name", "id", "desc", "field"]
+
+
+class SerializerOrder(serializers.ModelSerializer):
+    service = ServiceSerializer(read_only=True)
+    class Meta:
+        model = Orders
+        fields = ['service']
+
+
+class OrderDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KeyValue
+        depth = 1
+        fields = ["key", "value"]
+
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_of = ServiceSerializer(read_only=True)
-    class meta:
+
+    order_detail = OrderDetailSerializer(read_only=True, many=True)
+
+    class Meta:
         model = Orders
-        fields = ['order_of']
+        fields = ["service", "order_detail"]
+
+    def validate(self, data):
+        keys = []
+        print( self.context.get("details"))
+        for key in dict(self.context.get("details")):
+            keys.append(key)
+
+        print( FormFieldName.objects.filter(Service=self.context.get("service")))
+        for field in FormFieldName.objects.filter(Service=self.context.get("service")):
+            print(field.field_name)
+            if field.field_name not in keys:
+                raise serializers.ValidationError(f"{field.field_name} is required")
+        return data
+
+    def create(self, data):
+        ordr = self.Meta.model.objects.create(
+            user=self.context.get("request").user, service=self.context.get("service")
+        )
+        for key, value in self.context.get("details").items():
+            KeyValue.objects.create(
+                order=ordr, key=key, value=value
+            )
+        return data

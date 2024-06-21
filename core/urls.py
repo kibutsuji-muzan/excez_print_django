@@ -19,10 +19,16 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
-from exizprint.views.service_view import ServiceView
+
+from accounts.views.AccountsView import AccountsManagement
+from exizprint.views.service_view import ServiceView, OrdersView
 
 router = DefaultRouter()
+
 router.register(r'services', ServiceView, basename='services')
+router.register(r'orders', OrdersView, basename='orders')
+router.register(r'accounts', AccountsManagement, basename='accounts')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

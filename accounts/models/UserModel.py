@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.util import hex_validator, random_hex
 from django.utils import timezone
 
+from phonenumber_field.modelfields import PhoneNumberField
+
 from accounts.usermanager import UserManager
 
 from upload_validator import FileTypeValidator
@@ -27,7 +29,7 @@ def default_key(a):
     return random_hex(a)
 
 def dk(e_or_p):
-    return sha256(bytes(e_or_p,'utf-8')).hexdigest()
+    return sha256(bytes(str(e_or_p),'utf-8')).hexdigest()
 
 def token():
     salt = get_salt()
@@ -52,22 +54,23 @@ class User(AbstractUser):
     username = None
     first_name = None
     last_name = None
-    id= None
 
-    user = models.CharField(_("Username"), max_length=70, unique=True, validators=[hex_validator])
-
+    id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
     created_at = models.DateTimeField(auto_now=True,editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+    phone = PhoneNumberField(region="IN", null = False)
+    email = models.EmailField(_('Email'), max_length=200, blank=True, null=True, unique=True)
+    
     is_active = models.BooleanField(default=True)
 
     object = UserManager()
 
-    USERNAME_FIELD = 'user'
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     def __str__(self):
-        return str(self.id)
+        return str(self.email)
 
     class Meta:
         verbose_name = _("User")
@@ -84,25 +87,27 @@ class PassResetToken(models.Model):
     def __str__(self):
         return self.token
 
-class UserProfile(models.Model):
-    GENDER = [('MALE', 'MALE'), ('FEMALE', 'FEMALE'), ('OTHER', 'OTHER')]
+#Not Required For Now
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, editable=True, unique=True, verbose_name=_("User"), related_name='user_profile')
+# class UserProfile(models.Model):
+#     GENDER = [('MALE', 'MALE'), ('FEMALE', 'FEMALE'), ('OTHER', 'OTHER')]
 
-    first_name = models.CharField(_('First Name'), max_length=20, blank=False, null=True)
-    last_name = models.CharField(_('Last Name'), max_length=20, blank=False, null=True)
+#     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, editable=True, unique=True, verbose_name=_("User"), related_name='user_profile')
 
-    email = models.EmailField(_('Email'), max_length=200, blank=True, null=True)
+#     first_name = models.CharField(_('First Name'), max_length=20, blank=False, null=True)
+#     last_name = models.CharField(_('Last Name'), max_length=20, blank=False, null=True)
 
-    gender = models.CharField(_('Gender'),choices=GENDER, max_length=6, blank=False, null=True)
-    birthday = models.DateField(_('Birth Date'), blank=False, null=True)
+#     email = models.EmailField(_('Email'), max_length=200, blank=True, null=True)
+
+#     gender = models.CharField(_('Gender'),choices=GENDER, max_length=6, blank=False, null=True)
+#     birthday = models.DateField(_('Birth Date'), blank=False, null=True)
     
-    email_verified = models.BooleanField(default=False)
-    phone_verified = models.BooleanField(default=False)
+#     email_verified = models.BooleanField(default=False)
+#     phone_verified = models.BooleanField(default=False)
 
-    def __str__(self):
-        return str(self.email) if str(self.email) else str(self.phone)
+#     def __str__(self):
+#         return str(self.email) if str(self.email) else str(self.phone)
 
-    class Meta:
-        verbose_name = _("User Profile")
-        verbose_name_plural = _("User Profiles")
+#     class Meta:
+#         verbose_name = _("User Profile")
+#         verbose_name_plural = _("User Profiles")

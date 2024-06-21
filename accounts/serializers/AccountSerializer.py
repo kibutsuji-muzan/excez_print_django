@@ -3,67 +3,65 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-from accounts.models.UserModel import User, dk, UserProfile
+from accounts.models.UserModel import User, dk
 
-from phonenumbers import parse as validate_phone
 from pyisemail import is_email as validate_email
 
-from accounts.signals import Create_Profile
 # from accounts.signals import Create_Verif_Device
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['id','phone']
 
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField()
-    email_or_phone = serializers.CharField()
+    email = serializers.CharField()
     
     class Meta:
-        model = UserProfile
-        fields = ['type', 'email_or_phone', 'first_name', 'last_name', 'gender', 'birthday', 'password']
-
-    def valid_email_phone(self, email_or_phone):
-        if validate_email(address=email_or_phone, check_dns=True):
-            return {'email': email_or_phone, 'phone': False}
-        try:
-            if validate_phone(email_or_phone):
-                return {'phone': email_or_phone, 'email': False}
-        except:
-            raise serializers.ValidationError('Not Valid')
+        model = User
+        fields = [ 'email', 'password']
 
     def create(self, data):
-        email_or_phone = self.valid_email_phone(email_or_phone=data.get('email_or_phone'))
-
-        id = dk(email_or_phone.get('email') if email_or_phone.get('email') else email_or_phone.get('phone'))
+        try:
+            email =validate_email(data.get('email'))
+        except:
+            raise serializers.ValidationError('Not Valid')
 
         errors = []
         try:
             if validate_password(data.get('password')) is None:
                 # print('password is valid')
-                user = User.objects.create(user=id)
-                Create_Profile.send(sender=user, data=data, email_phone=email_or_phone)
+                print(data.get('email'))
+                user = User.objects.create(email = data.get('email'))
+                print(data.get('email'))
+                # Create_Profile.send(sender=user, data=data, email_phone=phone)
                 user.set_password(data.get('password'))
                 user.is_active = False
                 user.save()
                 return user
         except ValidationError as e:
-            # print('password not valid or other exception')
+            print('password not valid or other exception')
             for error in e:
-                # print(error)
+                print(error)
                 errors.append(str(error))
-            raise serializers.ValidationError(errors)
+            raise serializers.ValidationError(e)
 
 
 class SignInSerializer(serializers.Serializer):
-    email_or_phone = serializers.CharField()
+    email = serializers.CharField()
     password = serializers.CharField()
 
     class Meta:
-        fields = ['email_or_phone', 'password']
+        fields = ['email', 'password']
 
-    def valid_user(self, email_or_phone):
-        id = dk(email_or_phone)
+    def valid_user(self, email):
+        id = dk(email)
+        print(id)
         try:
-            user = User.objects.get(user=id)
+            user = User.objects.get(email=email)
         except:
-            raise serializers.ValidationError('User With This Email Or Phone Not Exsist')
+            raise serializers.ValidationError('User With This Email Or email Not Exsist')
 
         if user:
             return user
@@ -75,8 +73,9 @@ class SignInSerializer(serializers.Serializer):
             raise serializers.ValidationError('Password For This User Is Incorrect')
 
     def validate(self, data):
-        user = self.valid_user(data.get('email_or_phone'))
-        if user and user.is_active:
+        user = self.valid_user(data.get('email'))
+        print(user)
+        if user or user.is_active:
             auth = self.authenticate(password=data.get('password'), user=user)
             if auth:
                 return data
@@ -135,6 +134,5 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         user = self.context.get('user')
         user.set_password(data.get('new_pass0'))
         user.save()
-        user.reset_token.delete()
         user.refresh_from_db
         return user

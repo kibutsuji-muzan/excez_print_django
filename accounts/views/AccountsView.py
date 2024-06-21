@@ -3,8 +3,8 @@ from accounts.serializers.AccountSerializer import (
     SignInSerializer,
     PasswordResetSerializer,
     ChangePasswordSerializer,
+    UserSerializer,
 )
-from accounts.serializers.ProfileSerializer import ProfileSerializer
 
 from accounts.models.UserModel import User, PassResetToken, dk, token as tk
 from accounts.models.OTPModel import OTPToken
@@ -30,9 +30,10 @@ from django.contrib.auth.signals import user_logged_in
 from django.utils import timezone
 from django.db.models import Q
 
-#------------------------------------------------------------#
-#-------- Implement Logout User Later In Next Commit --------#
-#------------------------------------------------------------#
+# ------------------------------------------------------------#
+# -------- Implement Logout User Later In Next Commit --------#
+# ------------------------------------------------------------#
+
 
 class Base:
     def get_context(self):
@@ -53,23 +54,18 @@ class Base:
 
     def get_post_response_data(self, request, token, instance, user):
         data = {"expiry": self.format_expiry_datetime(instance.expiry), "token": token}
-        data["profile"] = ProfileSerializer(user.user_profile).data
+        data["profile"] = UserSerializer(user).data
         return data
-        
-    def valid_email_phone(self, email_or_phone):
-        if validate_email(address=email_or_phone, check_dns=True):
-            return {'email': email_or_phone, 'phone': False}
-        try:
-            if validate_phone(email_or_phone):
-                return {'phone': email_or_phone, 'email': False}
-        except:
-            raise None
+
+    def valid_email(self, email):
+        if validate_email(address=email, check_dns=True):
+            return {"email": email}
 
     def create_token(self, user):
         key = PassResetToken.objects.filter(user=user)
         if len(key):
             print(key)
-            print('k') if key[0].delete() else print('s')
+            print("k") if key[0].delete() else print("s")
             token = PassResetToken.objects.create(user=user, token=tk())
             token.refresh_from_db()
         else:
@@ -80,7 +76,7 @@ class Base:
 
     def get_user(self, pk):
         try:
-            user = User.objects.get(user=pk)
+            user = User.objects.get(email=pk)
         except:
             return None
         return user
@@ -88,11 +84,11 @@ class Base:
     def get_otp(self, user):
         totp = user.verification_device
         otp = totp.generate_challenge()
-        
+
         key = OTPToken.objects.filter(Q(user=user))
         if len(key):
             print(key)
-            print('k') if key[0].delete() else print('s')
+            print("k") if key[0].delete() else print("s")
             token = OTPToken.objects.create(user=user, token=tk())
             token.refresh_from_db()
         else:
@@ -103,17 +99,12 @@ class Base:
         return [otp, token]
 
     def send_otp(self, user, otp):
-        smsdata = {
-            "message": f"Hi There Your Otp is {otp}",
-        }
         maildata = {
             "mail": EmailTemplate.objects.get(name="get-otp"),
             "context": {"otp": otp},
         }
-        if user.user_profile.email:
-            Send_Mail.send(sender=user.user_profile, data=maildata)
-        if user.user_profile.phone:
-            Send_Sms.send(sender=user.user_profile, data=smsdata)
+        if user.email:
+            Send_Mail.send(sender=user, data=maildata)
         return True
 
     def send_reset_link(self, user, token, request, e_or_p):
@@ -130,11 +121,10 @@ class Base:
         smsdata = {
             "message": f"Hi There Your Reset Link is {reset_link}",
         }
-        if e_or_p.get('email'):
-            Send_Mail.send(sender=user.user_profile, data=maildata)
-        if e_or_p.get('phone'):
-            Send_Sms.send(sender=user.user_profile, data=smsdata)
+        if e_or_p.get("email"):
+            Send_Mail.send(sender=user, data=maildata)
         return True
+
 
 class OTPManagement:
     @action(methods=["get"], detail=True, url_name="get_otp", url_path="get-otp")
@@ -145,7 +135,7 @@ class OTPManagement:
                 otp, token = self.get_otp(user)
 
                 response = {
-                    "response": "Your Otp Has Been Sent To Your Phone",
+                    "response": "Your Otp Has Been Sent To Your email",
                     "resend-otp": reverse(
                         "accounts-resend_otp", kwargs={"pk": pk}, request=request
                     ),
@@ -204,7 +194,7 @@ class OTPManagement:
             if not user.is_active:
                 otp, token = self.get_otp(user)
                 response = {
-                    "Response": "Your Otp Has Been Sent To Your Phone",
+                    "Response": "Your Otp Has Been Sent To Your email",
                     "Verify-OTP-Url": reverse(
                         "accounts-otp_verification",
                         kwargs={"pk": token.token},
@@ -232,24 +222,24 @@ class PasswordManagement:
         url_path="get-reset-link",
     )
     def get_reset_link(self, request):
-        email_or_phone = self.valid_email_phone(request.data.get("email_or_phone"))
-        if email_or_phone is not None:
+        email = self.valid_email(request.data.get("email"))
+        if email is not None:
             try:
-                user = User.objects.get(Q(user=dk(request.data.get("email_or_phone"))))
+                user = User.objects.get(Q(email=request.data.get("email")))
             except:
                 return Response(
-                    "User With This email phone Does Not Exist",
+                    "User With This email email Does Not Exist",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             return Response(
-                "Email Or Phone Not Valid", status=status.HTTP_400_BAD_REQUEST
+                "Email Or email Not Valid", status=status.HTTP_400_BAD_REQUEST
             )
 
         token = self.create_token(user=user)
 
-        if self.send_reset_link(user, token, request, email_or_phone):
-  
+        if self.send_reset_link(user, token, request, email):
+
             return Response("Reset Link Has Been Sent To Your Email")
         return Response(
             "Something Went Wrong", status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -281,13 +271,15 @@ class PasswordManagement:
 
     @action(
         methods=["post"],
-        detail=True,
+        detail=False,
         url_name="change_pass",
         url_path="change-password",
-        permission_classes=[IsAuthenticated, IsSameUser],
+        permission_classes=[IsAuthenticated],
     )
-    def change_password(self, request, pk):
-        serializer = ChangePasswordSerializer(data=request.data, context={"user": request.user})
+    def change_password(self, request):
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={"user": request.user}
+        )
         if serializer.is_valid:
             serializer.update(data=serializer.data)
             return Response("Password Change Successfull")
@@ -306,59 +298,77 @@ class AccountsManagement(
 
     @action(methods=["post"], detail=False, url_name="signup", url_path="signup")
     def signup(self, request):
-        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer = self.get_serializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid(raise_exception=True):
-            u=dk(e_or_p=serializer.data.get("email_or_phone"))
+            u = dk(e_or_p=serializer.data.get("email"))
             print(u)
-            user = User.object.filter(user=u)
+            user = User.object.filter(email=serializer.data.get("email"))
             res = {
-                "User": serializer.data.get("email_or_phone"),
-                "Response": "Registration Succesfull Please verify Your Account"
+                "User": serializer.data.get("email"),
+                "Response": "Registration Succesfull Please verify Your Account",
             }
             print(len(user))
             if len(user):
-                if user[0].is_active:
-                    if user[0].user_profile.email:
-                        e_or_p = "Email"
-                    if user[0].user_profile.phone:
-                        e_or_p = "Phone"
-                else:
+                if not user[0].is_active:
                     otp, token = self.get_otp(user[0])
-                    res['Verify-OTP'] = reverse("accounts-otp_verification", kwargs={"pk": token.token}, request=request),
-                    res['Resend-OTP'] = reverse("accounts-resend_otp", kwargs={"pk": token.token}, request=request)
-                    res["Response"] = "User with This Email Or Phone Exist But Not Verified"
+                    print(token)
+                    print(otp)
+                    res["Verify-OTP"] = (
+                        reverse(
+                            "accounts-otp_verification",
+                            kwargs={"pk": token.token},
+                            request=request,
+                        ),
+                    )
+                    res["Resend-OTP"] = reverse(
+                        "accounts-resend_otp",
+                        kwargs={"pk": token.token},
+                        request=request,
+                    )
+                    res["Response"] = (
+                        "User with This Email Or email Exist But Not Verified"
+                    )
                     self.send_otp(user[0], otp)
 
                     print(otp)
                     return Response(res)
 
-                return Response(f"User with This '{e_or_p}' Already Exist And Verified")
+                return Response(f"User with This Email Already Exist And Verified")
 
             user = serializer.create(data=serializer.data)
             otp, token = self.get_otp(user)
-            print(token,otp)
-            res['Verify-OTP'] = reverse("accounts-otp_verification", kwargs={"pk": token.token}, request=request),
-            res['Resend-OTP'] = reverse("accounts-resend_otp", kwargs={"pk": token.token}, request=request)
+            print(token, otp)
+            res["Verify-OTP"] = (
+                reverse(
+                    "accounts-otp_verification",
+                    kwargs={"pk": token.token},
+                    request=request,
+                ),
+            )
+            res["Resend-OTP"] = reverse(
+                "accounts-resend_otp", kwargs={"pk": token.token}, request=request
+            )
             self.send_otp(user, otp)
             return Response(res)
         return Response({"status": 400})
 
     @action(methods=["post"], detail=False, url_name="signin", url_path="signin")
     def signin(self, request, format=None):
-        
+
         token_limit_per_user = self.get_token_limit_per_user()
-        serializer = SignInSerializer(
-            data=request.data, context={"TTL": token_limit_per_user, "request": request}
-        )
+        serializer = SignInSerializer(data=request.data, context={"request": request})
 
         if serializer.is_valid(raise_exception=True):
+            print("valid")
             data = serializer.data
-            id = dk(data["email_or_phone"])
-
-            user = self.get_user(id)
+            user = self.get_user(data["email"])
 
             if not user.is_active:
                 otp, token = self.get_otp(user)
+                print(token)
+                print(otp)
                 res = {
                     "Response": f"id: {user.id} is not verified yet",
                     "Verify-OTP": reverse(
@@ -409,10 +419,10 @@ class AccountsManagement(
                 "User With This Token Does Not Exist",
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        password=request.data.get("password")
+        password = request.data.get("password")
         if password is not None:
             if user.check_password(password):
                 user.delete()
                 return Response("Your Account Has Been Deleted")
             return Response("Password Is Incorrect", status=status.HTTP_400_BAD_REQUEST)
-        return Response("Password Is Required", status=status.HTTP_400_BAD_REQUEST)        
+        return Response("Password Is Required", status=status.HTTP_400_BAD_REQUEST)

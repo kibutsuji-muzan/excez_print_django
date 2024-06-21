@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
         #other packages
+
+    'knox',
     'rest_framework',
     'post_office',
     'phonenumber_field',
@@ -63,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware', 
        #custom middleware
+
     "corsheaders.middleware.CorsMiddleware",
 ]
 
@@ -121,12 +124,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 AUTH_USER_MODEL='accounts.User'
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
-# }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -172,7 +174,7 @@ CORS_ALLOWED_ORIGINS = [
 REST_KNOX = {
     'SECURE_HASH_ALGORITHM':'cryptography.hazmat.primitives.hashes.SHA512',
     'AUTH_TOKEN_CHARACTER_LENGTH': 64, # By default, it is set to 64 characters (this shouldn't need changing).
-    'TOKEN_TTL': timedelta(hours=(24*6)), # The default is 10 hours i.e., timedelta(hours=10)).
+    'TOKEN_TTL': timedelta(days=(365)), # The default is 10 hours i.e., timedelta(hours=10)).
     'TOKEN_LIMIT_PER_USER': None, # By default, this option is disabled and set to None -- thus no limit.
     'AUTO_REFRESH': True, # This defines if the token expiry time is extended by TOKEN_TTL each time the token is used.
     'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
