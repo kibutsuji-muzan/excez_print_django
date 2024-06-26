@@ -1,9 +1,11 @@
 from django.contrib import admin
-from exizprint.models.services import Services,FormFieldName,FormFieldType, Orders, KeyValue
+from exizprint.models.services import Services,FormFieldName,FormFieldType, Orders, KeyValue, NotificationToken, Notification
 # Register your models here.
 
 
 admin.site.register(FormFieldType)
+admin.site.register(NotificationToken)
+admin.site.register(Notification)
 
 
 class FormFieldInline(admin.TabularInline):

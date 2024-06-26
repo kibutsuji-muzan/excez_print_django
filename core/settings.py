@@ -14,6 +14,8 @@ from datetime import timedelta
 from pathlib import Path
 from rest_framework.settings import api_settings
 
+import firebase_admin
+from firebase_admin import credentials
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,86 +24,89 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-m2v6w@+0j=&8gew)3&nj+d!k^=ob+4ylj1cytvd_a85sm3v63&'
+SECRET_KEY = "django-insecure-m2v6w@+0j=&8gew)3&nj+d!k^=ob+4ylj1cytvd_a85sm3v63&"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["ac43-110-235-218-170.ngrok-free.app", "localhost", "127.0.0.1", "10.0.2.2"]
 
 # Application definition
 
 INSTALLED_APPS = [
     # 'django.contrib.admin',
-    'material',
-    'material.admin',
-
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-        #other packages
-
-    'knox',
-    'rest_framework',
-    'post_office',
-    'phonenumber_field',
-    'corsheaders',
-    'sms',
-    'accounts',
-    'exizprint',
+    "daphne",
+    "material",
+    "material.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # other packages
+    "knox",
+    "rest_framework",
+    "post_office",
+    "phonenumber_field",
+    "corsheaders",
+    "sms",
+    "accounts",
+    "exizprint",
     # 'django-filters',
     # 'markdown',
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware', 
-       #custom middleware
-
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # custom middleware
     "corsheaders.middleware.CorsMiddleware",
 ]
 
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = "core.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": ["templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
+# WSGI_APPLICATION = "core.wsgi.application"
 
+ASGI_APPLICATION = 'core.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 
 DATABASES = {
-    'default':{
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'exizprint',
-        'USER': 'ank3r',
-        'PASSWORD': 'Kaifi@9580',
-        'HOST': 'localhost',
-        'PORT': '',
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": "exizprint",
+        "USER": "ank3r",
+        "PASSWORD": "Kaifi@9580",
+        "HOST": "localhost",
+        "PORT": "",
     }
 }
 
@@ -111,31 +116,31 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
-AUTH_USER_MODEL='accounts.User'
+AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
 }
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'Asia/Calcutta'
+TIME_ZONE = "Asia/Calcutta"
 
 USE_TZ = False
 
@@ -145,11 +150,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-MEDIA_URL = 'media/'
+MEDIA_URL = "media/"
 
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / "media"
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 # STATIC_ROOT = BASE_DIR / 'static'
 
@@ -160,11 +165,11 @@ STATICFILES_DIRS = [
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-#cross all urls
-CORS_ALLOWED_ORIGINS = [
-    'http://127.0.0.1:3000',
-]
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# cross all urls
+# CORS_ALLOWED_ORIGINS = [
+#     "https://2d68-110-235-218-197.ngrok-free.app"
+# ]
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -172,17 +177,19 @@ CORS_ALLOWED_ORIGINS = [
 # }
 
 REST_KNOX = {
-    'SECURE_HASH_ALGORITHM':'cryptography.hazmat.primitives.hashes.SHA512',
-    'AUTH_TOKEN_CHARACTER_LENGTH': 64, # By default, it is set to 64 characters (this shouldn't need changing).
-    'TOKEN_TTL': timedelta(days=(365)), # The default is 10 hours i.e., timedelta(hours=10)).
-    'TOKEN_LIMIT_PER_USER': None, # By default, this option is disabled and set to None -- thus no limit.
-    'AUTO_REFRESH': True, # This defines if the token expiry time is extended by TOKEN_TTL each time the token is used.
-    'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
+    "SECURE_HASH_ALGORITHM": "cryptography.hazmat.primitives.hashes.SHA512",
+    "AUTH_TOKEN_CHARACTER_LENGTH": 64,  # By default, it is set to 64 characters (this shouldn't need changing).
+    "TOKEN_TTL": timedelta(
+        days=(365)
+    ),  # The default is 10 hours i.e., timedelta(hours=10)).
+    "TOKEN_LIMIT_PER_USER": None,  # By default, this option is disabled and set to None -- thus no limit.
+    "AUTO_REFRESH": True,  # This defines if the token expiry time is extended by TOKEN_TTL each time the token is used.
+    "EXPIRY_DATETIME_FORMAT": api_settings.DATETIME_FORMAT,
 }
 
 ###----Emailing Settings----###
 
-EMAIL_BACKEND = 'post_office.EmailBackend'
+EMAIL_BACKEND = "post_office.EmailBackend"
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # POST_OFFICE = {
@@ -190,19 +197,22 @@ EMAIL_BACKEND = 'post_office.EmailBackend'
 # }
 
 # EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST = 'smtp-mail.outlook.com'
-EMAIL_HOST_USER = 'ansari.kaifi7348@outlook.com'
+EMAIL_HOST = "smtp-mail.outlook.com"
+EMAIL_HOST_USER = "ansari.kaifi7348@outlook.com"
 EMAIL_PORT = 587
-EMAIL_HOST_PASSWORD = 'Kaifi@958095'
+EMAIL_HOST_PASSWORD = "Kaifi@958095"
 EMAIL_USE_TLS = True
 # DEFAULT_FROM_EMAIL = 'heller.james7348@gmail.com'
 
 ###----Phone message Settings----###
 
-DEFAULT_FROM_SMS = '+12062102736'
+DEFAULT_FROM_SMS = "+12062102736"
 # SMS_BACKEND = 'sms.backends.dummy.SmsBackend'
 # SMS_BACKEND = 'sms.backends.locmem.SmsBackend'
-SMS_BACKEND = 'sms.backends.twilio.SmsBackend'
+SMS_BACKEND = "sms.backends.twilio.SmsBackend"
 
 # TWILIO_ACCOUNT_SID = 'ACa99d512ef430c962637a8794fa160ba9'
 # TWILIO_AUTH_TOKEN = 'fef43f2ec5e02a8ea0b7d6e47ac9c783'
+
+cred = credentials.Certificate(BASE_DIR / 'exizprint-eea55-firebase-adminsdk-18a5y-1952e6b2d7.json')
+firebase_admin.initialize_app(cred)

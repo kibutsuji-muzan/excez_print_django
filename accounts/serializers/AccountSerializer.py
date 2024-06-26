@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from exizprint.models.services import NotificationToken
 
 from accounts.models.UserModel import User, dk
 
@@ -17,10 +18,10 @@ class UserSerializer(serializers.ModelSerializer):
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField()
     email = serializers.CharField()
-    
+    fcm_token = serializers.CharField()
     class Meta:
         model = User
-        fields = [ 'email', 'password']
+        fields = ['email', 'password', 'fcm_token']
 
     def create(self, data):
         try:
@@ -33,12 +34,15 @@ class SignUpSerializer(serializers.ModelSerializer):
             if validate_password(data.get('password')) is None:
                 # print('password is valid')
                 print(data.get('email'))
-                user = User.objects.create(email = data.get('email'))
+                user = User.objects.create(email = data.get('email').lower())
                 print(data.get('email'))
                 # Create_Profile.send(sender=user, data=data, email_phone=phone)
                 user.set_password(data.get('password'))
                 user.is_active = False
                 user.save()
+                token = NotificationToken.objects.get(token = data.get('fcm_token'))
+                token.user = user
+                token.save()
                 return user
         except ValidationError as e:
             print('password not valid or other exception')
@@ -52,8 +56,9 @@ class SignInSerializer(serializers.Serializer):
     email = serializers.CharField()
     password = serializers.CharField()
 
+    fcm_token = serializers.CharField()
     class Meta:
-        fields = ['email', 'password']
+        fields = ['email', 'password', 'fcm_token']
 
     def valid_user(self, email):
         id = dk(email)
@@ -61,7 +66,7 @@ class SignInSerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=email)
         except:
-            raise serializers.ValidationError('User With This Email Or email Not Exsist')
+            raise serializers.ValidationError('User With This Email Not Exsist')
 
         if user:
             return user
@@ -78,6 +83,14 @@ class SignInSerializer(serializers.Serializer):
         if user or user.is_active:
             auth = self.authenticate(password=data.get('password'), user=user)
             if auth:
+                try:
+                    token = user.fcmtoken
+                    token.token = data.get('fcm_token')
+                    token.save()
+                except:
+                    token = NotificationToken.objects.get(token = data.get('fcm_token'))
+                    token.user=user
+                    token.save()
                 return data
         raise serializers.ValidationError('User Is Not Active')
 

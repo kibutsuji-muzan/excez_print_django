@@ -5,6 +5,7 @@ from exizprint.models.services import (
     FormFieldType,
     Orders,
     KeyValue,
+    Notification,
 )
 
 
@@ -16,11 +17,14 @@ class FieldTypeSerializer(serializers.ModelSerializer):
 
 
 class FormFieldNameSerializer(serializers.ModelSerializer):
-    field_type = FieldTypeSerializer(many=False)
+    fieldtype = serializers.SerializerMethodField()
 
     class Meta:
         model = FormFieldName
-        fields = ["field_name", "value", "field_type"]
+        fields = ["field_name", "value", "fieldtype"]
+
+    def get_fieldtype(self, obj):
+        return obj.field_type.name
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -28,14 +32,15 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Services
-        fields = ["name", "id", "desc", "field"]
+        fields = ["name", "id", "desc", "field", "parent", "image", "rate"]
 
 
 class SerializerOrder(serializers.ModelSerializer):
     service = ServiceSerializer(read_only=True)
+
     class Meta:
         model = Orders
-        fields = ['service']
+        fields = ["service", "status", "eta"]
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
@@ -55,11 +60,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         keys = []
-        print( self.context.get("details"))
+        print(self.context.get("details"))
         for key in dict(self.context.get("details")):
             keys.append(key)
 
-        print( FormFieldName.objects.filter(Service=self.context.get("service")))
+        print(FormFieldName.objects.filter(Service=self.context.get("service")))
         for field in FormFieldName.objects.filter(Service=self.context.get("service")):
             print(field.field_name)
             if field.field_name not in keys:
@@ -71,7 +76,12 @@ class OrderSerializer(serializers.ModelSerializer):
             user=self.context.get("request").user, service=self.context.get("service")
         )
         for key, value in self.context.get("details").items():
-            KeyValue.objects.create(
-                order=ordr, key=key, value=value
-            )
+            KeyValue.objects.create(order=ordr, key=key, value=value)
         return data
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['message', 'title', 'image']
+    
+    

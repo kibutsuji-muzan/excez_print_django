@@ -5,12 +5,13 @@ from accounts.serializers.AccountSerializer import (
     ChangePasswordSerializer,
     UserSerializer,
 )
-
+from rest_framework.serializers import ValidationError
 from accounts.models.UserModel import User, PassResetToken, dk, token as tk
 from accounts.models.OTPModel import OTPToken
-from accounts.signals import Send_Mail, Send_Sms
+from core.signals import Send_Mail, Send_Sms
 from core import settings
-from accounts.permissions import IsSameUser
+from exizprint.models.services import NotificationToken, Notification
+from exizprint.serializers.service_serializer import NotificationSerializer
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import DateTimeField
@@ -135,7 +136,7 @@ class OTPManagement:
                 otp, token = self.get_otp(user)
 
                 response = {
-                    "response": "Your Otp Has Been Sent To Your email",
+                    "Response": "Your Otp Has Been Sent To Your email",
                     "resend-otp": reverse(
                         "accounts-resend_otp", kwargs={"pk": pk}, request=request
                     ),
@@ -170,9 +171,9 @@ class OTPManagement:
                     "accounts-resend_otp", kwargs={"pk": pk}, request=request
                 )
             }
-            res["response"] = "OTP is Required"
+            res["Response"] = "OTP is Required"
             if otp is not None:
-                res["response"] = "OTP is incorrect"
+                res["Response"] = "OTP is incorrect"
                 if totp.verify_token(otp):
                     res = {"signin-url": reverse("accounts-signin", request=request)}
                     token.delete()
@@ -261,7 +262,7 @@ class PasswordManagement:
         if serializer.is_valid(raise_exception=True):
             return Response(
                 {
-                    "response": "Your Password Has Been Reset",
+                    "Response": "Your Password Has Been Reset",
                     "signin-url": reverse("accounts-signin", request=request),
                 }
             )
@@ -298,13 +299,15 @@ class AccountsManagement(
 
     @action(methods=["post"], detail=False, url_name="signup", url_path="signup")
     def signup(self, request):
-        serializer = self.get_serializer(
-            data=request.data, context={"request": request}
-        )
+        data = request.data
+        try:
+            email = data.get("email").lower()
+            data["email"] = email
+        except:
+            pass
+        serializer = self.get_serializer(data=data, context={"request": request})
         if serializer.is_valid(raise_exception=True):
-            u = dk(e_or_p=serializer.data.get("email"))
-            print(u)
-            user = User.object.filter(email=serializer.data.get("email"))
+            user = User.object.filter(email=serializer.data.get("email").lower())
             res = {
                 "User": serializer.data.get("email"),
                 "Response": "Registration Succesfull Please verify Your Account",
@@ -321,7 +324,7 @@ class AccountsManagement(
                             kwargs={"pk": token.token},
                             request=request,
                         ),
-                    )
+                    )[0]
                     res["Resend-OTP"] = reverse(
                         "accounts-resend_otp",
                         kwargs={"pk": token.token},
@@ -335,7 +338,10 @@ class AccountsManagement(
                     print(otp)
                     return Response(res)
 
-                return Response(f"User with This Email Already Exist And Verified")
+                return Response(
+                    f"User with This Email Already Exist And Verified",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             user = serializer.create(data=serializer.data)
             otp, token = self.get_otp(user)
@@ -406,12 +412,12 @@ class AccountsManagement(
 
     @action(
         methods=["delete"],
-        detail=True,
+        detail=False,
         url_name="delete_user",
         url_path="delete-user",
-        permission_classes=[IsAuthenticated, IsSameUser],
+        permission_classes=[IsAuthenticated, ],
     )
-    def delete_user(self, request, pk):
+    def delete_user(self, request):
         try:
             user = User.objects.get(user=request.user.user)
         except:
@@ -426,3 +432,48 @@ class AccountsManagement(
                 return Response("Your Account Has Been Deleted")
             return Response("Password Is Incorrect", status=status.HTTP_400_BAD_REQUEST)
         return Response("Password Is Required", status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=["post"],
+        detail=False,
+        url_name="fcmT",
+        url_path="fcmT",
+    )
+    def get_notification_token(self, request):
+        try:
+            if request.data.get("fcm_old") is not None:
+                noti = NotificationToken.objects.get(token=request.data.get("fcm_old"))
+                noti.token = request.data.get("fcm_token")
+        except Exception as e:
+            NotificationToken.objects.create(token=request.data.get("fcm_old"))
+            print(e)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["get"],
+        detail=False,
+        url_name="get-notification",
+        url_path="get-notification",
+    )
+    def get_notification(self, request):
+        tkn = str(request.META.get('QUERY_STRING')).split('=')[1].replace('%3A',':')
+        print(tkn)
+        try:
+            token = NotificationToken.objects.filter(token=tkn)
+            print(token)
+            query = Notification.objects.filter(Q(token=token[0]))
+            serializer = NotificationSerializer(query, many=True)
+        except Exception as e:
+            print(e)
+            return Response('some error',status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["get"],
+        detail=False,
+        url_name="logout",
+        url_path="logout",permission_classes=[IsAuthenticated, ],
+    )
+    def logout(self, request):
+        AuthToken.objects.filter(user=request.user.id).delete()
+        return Response(status=status.HTTP_200_OK)

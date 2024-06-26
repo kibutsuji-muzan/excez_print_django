@@ -6,6 +6,7 @@ from rest_framework import mixins
 from exizprint.serializers.service_serializer import ServiceSerializer, OrderSerializer, SerializerOrder
 from exizprint.models.services import Services, Orders
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import render
 
 
 class ServiceView(
@@ -42,6 +43,7 @@ class OrdersView(
     def list(self, request):
         queryset = Orders.objects.filter(user=request.user)
         serializer = SerializerOrder(queryset,many=True)
+        print(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk):
