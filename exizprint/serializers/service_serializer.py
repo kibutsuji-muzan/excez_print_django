@@ -6,6 +6,7 @@ from exizprint.models.services import (
     Orders,
     KeyValue,
     Notification,
+    Banner,
 )
 
 
@@ -79,9 +80,14 @@ class OrderSerializer(serializers.ModelSerializer):
             KeyValue.objects.create(order=ordr, key=key, value=value)
         return data
 
+
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['message', 'title', 'image']
-    
-    
+        fields = ["message", "title", "image"]
+
+
+class BannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Banner
+        fields = ["image"]

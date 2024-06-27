@@ -50,8 +50,8 @@ class KeyValue(models.Model):
     order = models.ForeignKey(Orders, on_delete=models.CASCADE,null=False,blank=False)
 
 class NotificationToken(models.Model):
-    token = models.CharField(_('FCM Token'), blank=False, null=False, unique=True)
-    user = models.OneToOneField(User, on_delete=models.RESTRICT, null=True, blank=True, related_name='fcmtoken')
+    token = models.CharField(_('FCM Token'), blank=False, null=False)
+    user = models.ForeignKey(User, on_delete=models.RESTRICT, null=True, blank=True, related_name='fcmtoken')
 
     def __str__(self):
         return self.token
@@ -60,8 +60,11 @@ class Notification(models.Model):
     message = models.CharField(max_length=100,null=True, blank=True)
     title = models.CharField(max_length=100,null=True, blank=True)
     image = models.ImageField(_("Image"), upload_to="ServiceImage/",validators=[FileTypeValidator(allowed_types=[ 'image/*'])], null=True, blank=True)
-    token  = models.ForeignKey(NotificationToken, on_delete=models.RESTRICT, null=False, blank=False, related_name='fcm_token')
+    token  = models.ManyToManyField(NotificationToken, null=False, blank=False, related_name='fcm_token')
     def __str__(self):
-        return str(self.token.user)
+        return str(self.title)
     
-        
+class Banner(models.Model):
+    image = models.ImageField(_("Image"), upload_to="ServiceImage/",validators=[FileTypeValidator(allowed_types=[ 'image/*'])], null=False, blank=False)
+    def __str__(self):
+        return str(self.image)

@@ -3,11 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import mixins
 
-from exizprint.serializers.service_serializer import ServiceSerializer, OrderSerializer, SerializerOrder
-from exizprint.models.services import Services, Orders
+from exizprint.serializers.service_serializer import ServiceSerializer, OrderSerializer, SerializerOrder, BannerSerializer
+from exizprint.models.services import Services, Orders, Banner
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import render
-
+from rest_framework.decorators import action
 
 class ServiceView(
     mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
@@ -29,6 +28,10 @@ class ServiceView(
         print(self.queryset)
         return super().list(request)
 
+    @action(methods=["get"], detail=False, url_name="get_banner", url_path="get-banner")
+    def getbanner(self, request):
+        serializer = BannerSerializer( Banner.objects.all(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class OrdersView(
     mixins.RetrieveModelMixin,

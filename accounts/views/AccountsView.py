@@ -415,7 +415,9 @@ class AccountsManagement(
         detail=False,
         url_name="delete_user",
         url_path="delete-user",
-        permission_classes=[IsAuthenticated, ],
+        permission_classes=[
+            IsAuthenticated,
+        ],
     )
     def delete_user(self, request):
         try:
@@ -456,24 +458,29 @@ class AccountsManagement(
         url_path="get-notification",
     )
     def get_notification(self, request):
-        tkn = str(request.META.get('QUERY_STRING')).split('=')[1].replace('%3A',':')
+        tkn = str(request.META.get("QUERY_STRING")).split("=")[1].replace("%3A", ":")
         print(tkn)
         try:
             token = NotificationToken.objects.filter(token=tkn)
-            print(token)
             query = Notification.objects.filter(Q(token=token[0]))
             serializer = NotificationSerializer(query, many=True)
         except Exception as e:
             print(e)
-            return Response('some error',status=status.HTTP_400_BAD_REQUEST)
+            return Response("some error", status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=["get"],
         detail=False,
         url_name="logout",
-        url_path="logout",permission_classes=[IsAuthenticated, ],
+        url_path="logout",
+        permission_classes=[
+            IsAuthenticated,
+        ],
     )
     def logout(self, request):
+        for token in NotificationToken.objects.filter(user=request.user):
+            token.user = None
+            token.save()
         AuthToken.objects.filter(user=request.user.id).delete()
         return Response(status=status.HTTP_200_OK)

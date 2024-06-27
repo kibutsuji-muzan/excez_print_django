@@ -6,6 +6,7 @@ from exizprint.models.services import NotificationToken
 
 from accounts.models.UserModel import User, dk
 
+from django.db.models import Q
 from pyisemail import is_email as validate_email
 
 # from accounts.signals import Create_Verif_Device
@@ -84,13 +85,13 @@ class SignInSerializer(serializers.Serializer):
             auth = self.authenticate(password=data.get('password'), user=user)
             if auth:
                 try:
-                    token = user.fcmtoken
-                    token.token = data.get('fcm_token')
-                    token.save()
-                except:
                     token = NotificationToken.objects.get(token = data.get('fcm_token'))
-                    token.user=user
+                    token.user = user
                     token.save()
+                    print(f'token: {token}')
+                except Exception as e:
+                    NotificationToken.objects.create(token = data.get('fcm_token') , user = user)
+                    print(e)
                 return data
         raise serializers.ValidationError('User Is Not Active')
 

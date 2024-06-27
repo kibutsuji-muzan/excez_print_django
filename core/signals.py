@@ -12,7 +12,7 @@ from sms import send_sms
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from exizprint.models.services import Notification, Orders
+from exizprint.models.services import Notification, Orders,NotificationToken
 from firebase_admin import messaging
 
 
@@ -92,13 +92,14 @@ def createOtp(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Orders)
 def on_change(sender, instance, created, **kwargs):
-    print(instance.user.fcmtoken)
-    Notification.objects.create(
+    tokens = NotificationToken.objects.filter(user=instance.user)
+    notification = Notification.objects.create(
         title="Order Status Update",
         message=f"Your Status For Order {instance.service.name} is Updated to {instance.status}",
-        token=instance.user.fcmtoken,
     )
-
+    for tkn in tokens:
+        notification.token.add(tkn)
+        notification.save()
 
 @receiver(post_save, sender=Notification)
 def send_push_notification(sender, instance, created, **kwargs):
@@ -113,15 +114,15 @@ def send_push_notification(sender, instance, created, **kwargs):
                 body=instance.message,
                 image=str(instance.image)
             ),
-    print(noti[0].title)
-    message = messaging.Message(
-        token=str(instance.token),
-        notification=noti[0],
-        data=None,
-    )
-    try:
-        response = messaging.send(message)
-        return response
-    except Exception as e:
-        print(f"Error sending message: {e}")
-        return None
+    for tkn in instance.token.all():
+        message = messaging.Message(
+            token=str(tkn),
+            notification=noti[0],
+            data=None,
+        )
+        try:
+            response = messaging.send(message)
+            return response
+        except Exception as e:
+            print(f"Error sending message: {e}")
+            return None
