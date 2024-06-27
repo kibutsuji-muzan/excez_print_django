@@ -1,7 +1,5 @@
 from django.contrib import admin
 from exizprint.models.services import Services,FormFieldName,FormFieldType, Orders, KeyValue, NotificationToken, Notification,Banner
-# Register your models here.
-
 
 admin.site.register(FormFieldType)
 admin.site.register(NotificationToken)

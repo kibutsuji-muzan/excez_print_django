@@ -48,12 +48,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "post_office",
     "phonenumber_field",
-    "corsheaders",
-    "sms",
     "accounts",
     "exizprint",
-    # 'django-filters',
-    # 'markdown',
 ]
 
 MIDDLEWARE = [
@@ -64,8 +60,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # custom middleware
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -133,6 +127,9 @@ AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
 }
 
 # Internationalization
@@ -156,26 +153,10 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 STATIC_URL = "static/"
 
-# STATIC_ROOT = BASE_DIR / 'static'
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-# cross all urls
-# CORS_ALLOWED_ORIGINS = [
-#     "https://2d68-110-235-218-197.ngrok-free.app"
-# ]
-
-# REST_FRAMEWORK = {
-#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-#     'PAGE_SIZE': 1
-# }
-
 REST_KNOX = {
     "SECURE_HASH_ALGORITHM": "cryptography.hazmat.primitives.hashes.SHA512",
     "AUTH_TOKEN_CHARACTER_LENGTH": 64,  # By default, it is set to 64 characters (this shouldn't need changing).
@@ -190,29 +171,13 @@ REST_KNOX = {
 ###----Emailing Settings----###
 
 EMAIL_BACKEND = "post_office.EmailBackend"
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-# POST_OFFICE = {
-#     'DEFAULT_PRIORITY' : 'now'
-# }
-
-# EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST = "smtp-mail.outlook.com"
 EMAIL_HOST_USER = "ansari.kaifi7348@outlook.com"
 EMAIL_PORT = 587
 EMAIL_HOST_PASSWORD = "Kaifi@958095"
 EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = 'heller.james7348@gmail.com'
-
-###----Phone message Settings----###
-
-DEFAULT_FROM_SMS = "+12062102736"
-# SMS_BACKEND = 'sms.backends.dummy.SmsBackend'
-# SMS_BACKEND = 'sms.backends.locmem.SmsBackend'
-SMS_BACKEND = "sms.backends.twilio.SmsBackend"
-
-# TWILIO_ACCOUNT_SID = 'ACa99d512ef430c962637a8794fa160ba9'
-# TWILIO_AUTH_TOKEN = 'fef43f2ec5e02a8ea0b7d6e47ac9c783'
 
 cred = credentials.Certificate(BASE_DIR / 'exizprint-eea55-firebase-adminsdk-18a5y-1952e6b2d7.json')
 firebase_admin.initialize_app(cred)
+

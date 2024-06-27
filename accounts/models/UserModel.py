@@ -1,21 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
-from django_otp.util import hex_validator, random_hex
+from django_otp.util import random_hex
 from django.utils import timezone
 
 from phonenumber_field.modelfields import PhoneNumberField
 
 from accounts.usermanager import UserManager
 
-from upload_validator import FileTypeValidator
 from datetime import timedelta
 from hashlib import pbkdf2_hmac, sha256
 import random
 import uuid
-
-# drop schema public cascade;create schema public;grant all on schema public to admin;
-#CREATE EXTENSION postgis;
 
 ranint = lambda a,b:random.randint(a,b)
 
@@ -86,28 +82,3 @@ class PassResetToken(models.Model):
 
     def __str__(self):
         return self.token
-
-#Not Required For Now
-
-# class UserProfile(models.Model):
-#     GENDER = [('MALE', 'MALE'), ('FEMALE', 'FEMALE'), ('OTHER', 'OTHER')]
-
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, editable=True, unique=True, verbose_name=_("User"), related_name='user_profile')
-
-#     first_name = models.CharField(_('First Name'), max_length=20, blank=False, null=True)
-#     last_name = models.CharField(_('Last Name'), max_length=20, blank=False, null=True)
-
-#     email = models.EmailField(_('Email'), max_length=200, blank=True, null=True)
-
-#     gender = models.CharField(_('Gender'),choices=GENDER, max_length=6, blank=False, null=True)
-#     birthday = models.DateField(_('Birth Date'), blank=False, null=True)
-    
-#     email_verified = models.BooleanField(default=False)
-#     phone_verified = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         return str(self.email) if str(self.email) else str(self.phone)
-
-#     class Meta:
-#         verbose_name = _("User Profile")
-#         verbose_name_plural = _("User Profiles")

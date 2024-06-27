@@ -6,7 +6,6 @@ from exizprint.models.services import NotificationToken
 
 from accounts.models.UserModel import User, dk
 
-from django.db.models import Q
 from pyisemail import is_email as validate_email
 
 # from accounts.signals import Create_Verif_Device

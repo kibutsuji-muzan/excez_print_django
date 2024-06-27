@@ -31,7 +31,6 @@ router.register(r'accounts', AccountsManagement, basename='accounts')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', index, name='home')
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += router.urls

@@ -5,10 +5,9 @@ from accounts.serializers.AccountSerializer import (
     ChangePasswordSerializer,
     UserSerializer,
 )
-from rest_framework.serializers import ValidationError
-from accounts.models.UserModel import User, PassResetToken, dk, token as tk
+from accounts.models.UserModel import User, PassResetToken,token as tk
 from accounts.models.OTPModel import OTPToken
-from core.signals import Send_Mail, Send_Sms
+from core.signals import Send_Mail
 from core import settings
 from exizprint.models.services import NotificationToken, Notification
 from exizprint.serializers.service_serializer import NotificationSerializer
@@ -23,7 +22,6 @@ from rest_framework.reverse import reverse
 
 from knox.models import AuthToken
 from post_office.models import EmailTemplate
-from phonenumbers import parse as validate_phone
 from pyisemail import is_email as validate_email
 
 from django.contrib.auth.signals import user_logged_in

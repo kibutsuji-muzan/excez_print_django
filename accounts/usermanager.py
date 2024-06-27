@@ -1,5 +1,4 @@
 from django.contrib.auth.models import UserManager
-from django.contrib.auth.hashers import make_password
 
 class UserManager(UserManager):
     use_in_migrations = True

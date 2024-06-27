@@ -1,5 +1,5 @@
 from django.utils.translation import gettext_lazy as _
-from django_otp.util import hex_validator, random_hex
+from django_otp.util import hex_validator
 from django_otp.models import Device
 from django_otp.oath import TOTP
 from django.db import models
