@@ -16,6 +16,8 @@ from rest_framework.settings import api_settings
 
 import firebase_admin
 from firebase_admin import credentials
+
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,12 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-m2v6w@+0j=&8gew)3&nj+d!k^=ob+4ylj1cytvd_a85sm3v63&"
+SECRET_KEY = os.environ["DJANGO_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["ac43-110-235-218-170.ngrok-free.app", "localhost", "127.0.0.1", "10.0.2.2"]
+ALLOWED_HOSTS = [os.environ["DJANGO_ALLOWED_HOST"]]
 
 # Application definition
 
@@ -96,9 +98,9 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "exizprint",
-        "USER": "ank3r",
-        "PASSWORD": "Kaifi@9580",
+        "NAME": os.environ["DB_NAME"],
+        "USER": os.environ["DB_USER"],
+        "PASSWORD": os.environ["DB_PASS"],
         "HOST": "localhost",
         "PORT": "",
     }
@@ -153,6 +155,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 STATIC_URL = "static/"
 
+STATIC_ROOT = BASE_DIR / "static"
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -173,11 +178,10 @@ REST_KNOX = {
 EMAIL_BACKEND = "post_office.EmailBackend"
 
 EMAIL_HOST = "smtp-mail.outlook.com"
-EMAIL_HOST_USER = "ansari.kaifi7348@outlook.com"
+EMAIL_HOST_USER = os.environ["EMAIL_USER"]
 EMAIL_PORT = 587
-EMAIL_HOST_PASSWORD = "Kaifi@958095"
+EMAIL_HOST_PASSWORD = os.environ["EMAIL_PASS"]
 EMAIL_USE_TLS = True
 
-cred = credentials.Certificate(BASE_DIR / 'exizprint-eea55-firebase-adminsdk-18a5y-1952e6b2d7.json')
+cred = credentials.Certificate(os.environ["FIREBASE_CERTIFICATE"])
 firebase_admin.initialize_app(cred)
-

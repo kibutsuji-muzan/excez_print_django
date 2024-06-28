@@ -40,9 +40,13 @@ class SignUpSerializer(serializers.ModelSerializer):
                 user.set_password(data.get('password'))
                 user.is_active = False
                 user.save()
-                token = NotificationToken.objects.get(token = data.get('fcm_token'))
-                token.user = user
-                token.save()
+                try:
+                    token = NotificationToken.objects.get(token = data.get('fcm_token'))
+                    token.user = user
+                    token.save()
+                    print(f'token: {token}')
+                except Exception as e:
+                    NotificationToken.objects.create(token = data.get('fcm_token') , user = user)
                 return user
         except ValidationError as e:
             print('password not valid or other exception')

@@ -7,6 +7,7 @@ from exizprint.serializers.service_serializer import ServiceSerializer, OrderSer
 from exizprint.models.services import Services, Orders, Banner
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+import os
 
 class ServiceView(
     mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
@@ -26,6 +27,8 @@ class ServiceView(
 
     def list(self, request):
         print(self.queryset)
+        print(os.environ['PATH'])
+
         return super().list(request)
 
     @action(methods=["get"], detail=False, url_name="get_banner", url_path="get-banner")
