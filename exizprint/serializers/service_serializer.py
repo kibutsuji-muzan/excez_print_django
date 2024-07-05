@@ -2,30 +2,20 @@ from rest_framework import serializers
 from exizprint.models.services import (
     Services,
     FormFieldName,
-    FormFieldType,
     Orders,
     KeyValue,
     Notification,
     Banner,
+    FileField,
+    PaymentModel,
 )
 
 
-class FieldTypeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = FormFieldType
-        fields = ["name"]
-
-
 class FormFieldNameSerializer(serializers.ModelSerializer):
-    fieldtype = serializers.SerializerMethodField()
 
     class Meta:
         model = FormFieldName
-        fields = ["field_name", "value", "fieldtype"]
-
-    def get_fieldtype(self, obj):
-        return obj.field_type.name
+        fields = ["field_name", "value", "field_type"]
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -41,7 +31,7 @@ class SerializerOrder(serializers.ModelSerializer):
 
     class Meta:
         model = Orders
-        fields = ["service", "status", "eta"]
+        fields = ["id", "service", "status", "eta"]
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
@@ -53,41 +43,72 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
 
-    order_detail = OrderDetailSerializer(read_only=True, many=True)
+    # order_detail = OrderDetailSerializer(read_only=True, many=True)
 
     class Meta:
         model = Orders
-        fields = ["service", "order_detail"]
+        fields = ["service"]
 
     def validate(self, data):
-        keys = []
-        print(self.context.get("details"))
-        for key in dict(self.context.get("details")):
-            keys.append(key)
 
-        print(FormFieldName.objects.filter(Service=self.context.get("service")))
-        for field in FormFieldName.objects.filter(Service=self.context.get("service")):
-            print(field.field_name)
-            if field.field_name not in keys:
-                raise serializers.ValidationError(f"{field.field_name} is required")
+        print("\n")
+        print("\n")
+        print(self.context.get("fields").keys())
+        print("\n")
+        print("\n")
+        ser_fields = FormFieldName.objects.filter(service=self.context.get("service"))
+        s_fields = self.context.get("fields").copy()
+        for field in ser_fields:
+            if field.field_type == "file":
+                if field.field_name not in self.context.get("request").FILES:
+                    raise serializers.ValidationError(
+                        f"{field.field_name} field is required"
+                    )
+                self.context.get("files")[field.field_name] = self.context.get(
+                    "request"
+                ).FILES[field.field_name]
+                self.context.get("fields").pop(field.field_name)
+            else:
+                if field.field_name not in self.context.get("fields").keys():
+                    raise serializers.ValidationError(
+                        f"{field.field_name} field is required"
+                    )
         return data
 
     def create(self, data):
+        print(f"data:{data}")
         ordr = self.Meta.model.objects.create(
-            user=self.context.get("request").user, service=self.context.get("service")
+            user=self.context.get("request").user,
+            service=self.context.get("service"),
+            bill=self.context.get("service").rate,
         )
-        for key, value in self.context.get("details").items():
+        self.context.get("id")['id'] = ordr.id
+
+        for key, value in self.context.get("fields").items():
+            print(f"{key}, {value}")
             KeyValue.objects.create(order=ordr, key=key, value=value)
+        for key, value in self.context.get("files").items():
+            print(f"key : {key},value : {value}")
+            FileField.objects.create(
+                field_name=key,
+                file=value,
+                order=ordr,
+            )
         return data
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["message", "title", "image"]
-
+        fields = ["message", "title", "image","created_at"]
 
 class BannerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Banner
         fields = ["image"]
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentModel
+        fields = ["razorpay_order_id", "razorpay_payment_id", "razorpay_signature"]

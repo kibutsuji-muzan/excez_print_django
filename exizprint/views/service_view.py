@@ -1,13 +1,30 @@
+import random
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import mixins
 
-from exizprint.serializers.service_serializer import ServiceSerializer, OrderSerializer, SerializerOrder, BannerSerializer
-from exizprint.models.services import Services, Orders, Banner
+from exizprint.serializers.service_serializer import (
+    PaymentSerializer,
+    ServiceSerializer,
+    OrderSerializer,
+    SerializerOrder,
+    BannerSerializer,
+)
+from exizprint.models.services import (
+    Services,
+    Orders,
+    Banner,
+    FormFieldName,
+    PaymentModel,
+)
+from accounts.models.UserModel import default_key
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 import os
+import razorpay.client
+import core.settings as setting
+
 
 class ServiceView(
     mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
@@ -27,14 +44,27 @@ class ServiceView(
 
     def list(self, request):
         print(self.queryset)
-        print(os.environ['PATH'])
+        print(os.environ["PATH"])
 
         return super().list(request)
 
     @action(methods=["get"], detail=False, url_name="get_banner", url_path="get-banner")
     def getbanner(self, request):
-        serializer = BannerSerializer( Banner.objects.all(), many=True)
+        serializer = BannerSerializer(Banner.objects.all(), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=["get"], detail=False, url_name="search", url_path="search")
+    def search(self, request):
+        query = []
+        for q in Services.objects.filter(
+            name__contains=str(request.META.get("QUERY_STRING")).title().split("=")[1]
+        ):
+            if q.parent != None:
+                query.append(q)
+
+        serializer = ServiceSerializer(query, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class OrdersView(
     mixins.RetrieveModelMixin,
@@ -48,7 +78,7 @@ class OrdersView(
 
     def list(self, request):
         queryset = Orders.objects.filter(user=request.user)
-        serializer = SerializerOrder(queryset,many=True)
+        serializer = SerializerOrder(queryset, many=True)
         print(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -63,17 +93,112 @@ class OrdersView(
     def create(self, request):
         try:
             service = Services.objects.get(id=request.data.get("service"))
-            details = request.data.get("order_detail")
         except:
             return Response("Service Is Required")
-        
-        serializer = OrderSerializer(data=request.data, context={"request":request, "service":service, "details":details})
+        fields = {}
+        files = {}
+        id = {}
+        for key in request.data:
+            if key != "service":
+                fields[key] = request.data[key]
+
+        serializer = OrderSerializer(
+            data=request.data,
+            context={
+                "request": request,
+                "service": service,
+                "fields": fields,
+                "files": files,
+                "id":id
+            },
+        )
         if serializer.is_valid(raise_exception=True):
-            print(serializer.data)
             serializer.create(serializer.data)
+
             return Response(
                 {
                     "response": "Your Order Has Been Placed",
+                    "id":id.get('id'),
                     "data": serializer.data,
                 }
             )
+        return Response("something went wrong", status=status.HTTP_400_BAD_REQUEST)
+
+
+class PaymentPortal(viewsets.GenericViewSet):
+    http_method_names = ["get", "post"]
+    permission_classes = [IsAuthenticated]
+    @action(
+        methods=["get"],
+        detail=True,
+        url_name="create_payment_order",
+        url_path="create-payment-order",
+    )
+    def createOrder(self, request, pk):
+        try:
+            order = Orders.objects.get(id=pk)
+        except:
+            return Response("something went wrong", status=status.HTTP_400_BAD_REQUEST)
+        service = order.service
+        if order.status == "unpaid":
+            client = razorpay.Client(auth=(setting.p_key, setting.s_key))
+            data = {
+                "amount": service.rate * 100,
+                "currency": "INR",
+                "receipt": default_key(20),
+            }
+            payment = client.order.create(data=data)
+            return Response(
+                {
+                    "order":order.id,
+                    "payment": {
+                        "key": setting.p_key,
+                        "amount": payment.get("amount"),
+                        "name": service.name,
+                        "order_id": payment.get("id"),
+                        # "description": "Fine T-Shirt",
+                        "timeout": 60*10,
+                        "prefill": {
+                            "email": request.user.email,
+                        },
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response("Already Paid Order", status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_name="verify_payment_order",
+        url_path="verify-payment-order",
+    )
+    def verifyOrder(self, request, pk):
+        try:
+            order = Orders.objects.get(id=pk)
+        except:
+            return Response("something went wrong", status=status.HTTP_400_BAD_REQUEST)
+        client = razorpay.Client(auth=(setting.p_key, setting.s_key))
+        serializer = PaymentSerializer(data=request.data)
+        print(request.data)
+        if serializer.is_valid():
+            payment = PaymentModel.objects.create(
+                razorpay_order_id=request.data.get("razorpay_order_id"),
+                razorpay_payment_id=request.data.get("razorpay_payment_id"),
+                razorpay_signature=request.data.get("razorpay_signature"),
+                ordr=order,
+            )
+            valid = client.utility.verify_payment_signature(
+                {
+                    "razorpay_order_id": payment.razorpay_order_id,
+                    "razorpay_payment_id": payment.razorpay_payment_id,
+                    "razorpay_signature": payment.razorpay_signature,
+                }
+            )
+            if valid:
+                order.status = 'paid'
+                order.payment_status = True
+                order.save()
+                return Response("Successfull Payment", status=status.HTTP_200_OK)
+            return Response("Signature Not Valid", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Already Paid Order", status=status.HTTP_400_BAD_REQUEST)

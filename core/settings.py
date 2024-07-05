@@ -18,6 +18,7 @@ import firebase_admin
 from firebase_admin import credentials
 
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,12 +27,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["DJANGO_KEY"]
+SECRET_KEY = "django-insecure-m2v6w@+0j=&8gew)3&nj+d!k^=ob+4ylj1cytvd_a85sm3v63&"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [os.environ["DJANGO_ALLOWED_HOST"]]
+ALLOWED_HOSTS = ["2941-110-235-218-244.ngrok-free.app", "localhost"]
 
 # Application definition
 
@@ -46,6 +47,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # other packages
+    "gdstorage",
+    # "django_payments_razorpay",
+    
     "knox",
     "rest_framework",
     "post_office",
@@ -84,12 +88,8 @@ TEMPLATES = [
 
 # WSGI_APPLICATION = "core.wsgi.application"
 
-ASGI_APPLICATION = 'core.asgi.application'
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': "channels.layers.InMemoryChannelLayer"
-    }
-}
+ASGI_APPLICATION = "core.asgi.application"
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -98,9 +98,9 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": os.environ["DB_NAME"],
-        "USER": os.environ["DB_USER"],
-        "PASSWORD": os.environ["DB_PASS"],
+        "NAME": "exizprint",
+        "USER": "ank3r",
+        "PASSWORD": "Kaifi@9580",
         "HOST": "localhost",
         "PORT": "",
     }
@@ -129,9 +129,7 @@ AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    )
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
 }
 
 # Internationalization
@@ -178,10 +176,29 @@ REST_KNOX = {
 EMAIL_BACKEND = "post_office.EmailBackend"
 
 EMAIL_HOST = "smtp-mail.outlook.com"
-EMAIL_HOST_USER = os.environ["EMAIL_USER"]
+EMAIL_HOST_USER = "exizprint@outlook.com"
 EMAIL_PORT = 587
-EMAIL_HOST_PASSWORD = os.environ["EMAIL_PASS"]
+EMAIL_HOST_PASSWORD = "Ank3r@9580"
 EMAIL_USE_TLS = True
 
-cred = credentials.Certificate(os.environ["FIREBASE_CERTIFICATE"])
+cred = credentials.Certificate(
+    "/Users/sukuna/Project/excez_print_django/exizprint-35bbe-firebase-adminsdk-hxrn8-21d0aff69b.json"
+)
 firebase_admin.initialize_app(cred)
+GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = (
+    BASE_DIR / "vaulted-night-428015-c9-5350bd273af2.json"
+)
+GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = "/exizprint/"
+
+# p_key = "rzp_live_T4OUcMc96AitBE"
+# s_key = "SyINQLSp1ULbWi0PDxgUhBXT"
+
+p_key = "rzp_test_7kOPQnTFt1kEdj"
+s_key = "vT1fQ2HlyJKVLEKJczkwWWVH"
+PAYMENT_VARIANTS = {
+    "razorpay": (
+        "django_payments_razorpay.RazorPayProvider",
+        {"public_key": p_key, "secret_key": s_key},
+    ),
+}
+CHECKOUT_PAYMENT_CHOICES = [('razorpay', 'RazorPay')]

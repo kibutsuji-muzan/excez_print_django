@@ -20,6 +20,9 @@ django-material-admin = "*"
 channels = "*"
 daphne = "*"
 firebase-admin = "*"
+django-googledrive-storage = "*"
+libmagic = "*"
+django-payments-razorpay = "*"
 
 [dev-packages]
 

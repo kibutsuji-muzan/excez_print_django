@@ -334,7 +334,7 @@ class AccountsManagement(
                     self.send_otp(user[0], otp)
 
                     print(otp)
-                    return Response(res)
+                    return Response(res,status=status.HTTP_409_CONFLICT)
 
                 return Response(
                     f"User with This Email Already Exist And Verified",
@@ -456,15 +456,16 @@ class AccountsManagement(
         url_path="get-notification",
     )
     def get_notification(self, request):
-        tkn = str(request.META.get("QUERY_STRING")).split("=")[1].replace("%3A", ":")
-        print(tkn)
         try:
-            token = NotificationToken.objects.filter(token=tkn)
-            query = Notification.objects.filter(Q(token=token[0]))
-            serializer = NotificationSerializer(query, many=True)
-        except Exception as e:
-            print(e)
-            return Response("some error", status=status.HTTP_400_BAD_REQUEST)
+            tkn = str(request.META.get("QUERY_STRING")).split("=")[1].replace("%3A", ":")
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        token = NotificationToken.objects.filter(token=tkn)
+        if(request.user.is_anonymous):
+            query = Notification.objects.filter(token=token[0], user = None)
+        else:
+            query = Notification.objects.filter(Q(token=token[0]) or Q(user = request.user))
+        serializer = NotificationSerializer(query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(

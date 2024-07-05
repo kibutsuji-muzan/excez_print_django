@@ -1,11 +1,11 @@
 from django.dispatch import receiver, Signal
-from django.db.models.signals import post_save  
+from django.db.models.signals import post_save
 from accounts.models.OTPModel import VerificationDevice
 from accounts.models.UserModel import User
 from core import settings
 
 from post_office import mail
-from exizprint.models.services import Notification, Orders,NotificationToken
+from exizprint.models.services import Notification, Orders, NotificationToken
 from firebase_admin import messaging
 
 Send_Mail = Signal()
@@ -28,10 +28,12 @@ def SendMail(sender, data, **kwargs):
         priority="now",
     )
 
+
 @receiver(post_save, sender=User)
 def createOtp(sender, instance, created, **kwargs):
     if created:
         VerificationDevice.objects.get_or_create(user=instance)
+
 
 @receiver(post_save, sender=Orders)
 def on_change(sender, instance, created, **kwargs):
@@ -39,24 +41,30 @@ def on_change(sender, instance, created, **kwargs):
     notification = Notification.objects.create(
         title="Order Status Update",
         message=f"Your Status For Order {instance.service.name} is Updated to {instance.status}",
+        user = instance.user
     )
+    print("order update")
     for tkn in tokens:
         notification.token.add(tkn)
         notification.save()
 
+
 @receiver(post_save, sender=Notification)
 def send_push_notification(sender, instance, created, **kwargs):
-    if(instance.image == None):
-        noti=messaging.Notification(
+    if instance.image == None:
+        noti = (
+            messaging.Notification(
                 title=instance.title,
                 body=instance.message,
             ),
+        )
     else:
-        noti=messaging.Notification(
-                title=instance.title,
-                body=instance.message,
-                image=str(instance.image)
+        noti = (
+            messaging.Notification(
+                title=instance.title, body=instance.message, image=str(f'https://{settings.ALLOWED_HOSTS[0]}/media/{instance.image}')
             ),
+        )
+    print(f'https://{settings.ALLOWED_HOSTS[0]}/media/{instance.image}')
     for tkn in instance.token.all():
         message = messaging.Message(
             token=str(tkn),
@@ -65,6 +73,7 @@ def send_push_notification(sender, instance, created, **kwargs):
         )
         try:
             response = messaging.send(message)
+            print("notification send")
             return response
         except Exception as e:
             print(f"Error sending message: {e}")
