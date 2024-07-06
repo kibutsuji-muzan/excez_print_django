@@ -67,19 +67,6 @@ class ServiceView(
         serializer = ServiceSerializer(query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(methods=["get"], detail=False, url_name="testurl", url_path="testurl")
-    def TestUrl(self, request):
-        otp = 12345
-        user = User.objects.all()[0]
-        maildata = {
-            "mail": "get-otp",
-            "context": {"otp": otp},
-            "user_id": user.id,
-        }
-        SendMail.delay(maildata)
-        return Response(status=status.HTTP_200_OK)
-
-
 class OrdersView(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,

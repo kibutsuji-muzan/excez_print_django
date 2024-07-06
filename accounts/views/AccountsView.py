@@ -10,6 +10,7 @@ from accounts.models.UserModel import User, PassResetToken,token as tk
 from accounts.models.OTPModel import OTPToken
 # from core.signals import Send_Mail, SendMail
 from core import settings
+from core.task import SendMail
 from exizprint.models.services import NotificationToken, Notification
 from exizprint.serializers.service_serializer import NotificationSerializer
 
@@ -102,19 +103,12 @@ class Base:
         maildata = {
             "mail": "get-otp",
             "context": {"otp": otp},
-            "user_id":user.id,
+            "user_id":user.email,
+            "priority":"now"
         }
-        # if user.email:
-        #     SendMail(data=json.dump(maildata))
+        if user.email:
+            SendMail.delay(maildata)
         return True
-    # def send_otp(self, user, otp):
-    #     maildata = {
-    #         "mail": EmailTemplate.objects.get(name="get-otp"),
-    #         "context": {"otp": otp},
-    #     }
-    #     if user.email:
-    #         Send_Mail.send(sender=user, data=maildata)
-    #     return True
 
     def send_reset_link(self, user, token, request, e_or_p):
         reset_link = reverse(

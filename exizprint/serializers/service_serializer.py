@@ -9,11 +9,14 @@ from exizprint.models.services import (
     Notification,
     Banner,
     FileField,
-    PaymentModel,TempFileField
+    PaymentModel,
+    TempFileField,
 )
-from core.task import upload_to_google
+from core.task import SendMail, upload_to_google
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.files import File
+
+
 class FormFieldNameSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -91,8 +94,15 @@ class OrderSerializer(serializers.ModelSerializer):
             print(f"{key}, {value}")
             KeyValue.objects.create(order=ordr, key=key, value=value)
         for key, value in self.context.get("files").items():
-            tempFile = TempFileField.objects.create(temp_file = value)
-            upload_to_google.delay(key=key, ordr_id = ordr.id, temp_id = tempFile.id)
+            tempFile = TempFileField.objects.create(temp_file=value)
+            upload_to_google.delay(key=key, ordr_id=ordr.id, temp_id=tempFile.id)
+        maildata = {
+            "mail": "order-placed",
+            "context": {"order_id": ordr.id, "service":self.context.get("service").name, "bill":self.context.get("service").rate},
+            "user_id": self.context.get("request").user.email,
+            "priority": "now",
+        }
+        SendMail.delay(data=maildata)
         return data
 
 

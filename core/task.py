@@ -13,17 +13,16 @@ def SendMail(self, data):
     print("data")
     maildata = models.EmailTemplate.objects.get(name=data["mail"])
     context = data["context"]
-    sender = User.objects.get(id=data["user_id"])
     mail.send(
         [
-            sender.email,
+            data["email"],
         ],
         settings.EMAIL_HOST_USER,
         subject=maildata.subject,
         message=maildata.content,
         html_message=maildata.html_content,
         context=context,
-        priority="now",
+        priority=data["priority"],
     )
     return "Done"
 

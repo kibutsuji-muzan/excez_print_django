@@ -198,3 +198,12 @@ CELERY_ACCEPT_CONTENT = {'application/json'}
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
+
+CELERYD_NODES="worker"
+CELERY_BIN="home/ubuntu/exizprint/env/bin/celery"
+CELERY_APP="core"
+CELERYD_MULTI="multi"
+CELERYD_OPTS="--time-limit=300 --concurrency=8"
+CELERYD_LOG_LEVEL="INFO"
+CELERYD_LOG_FILE="/var/log/celery/%n%I.log"
+CELERYD_PID_FILE="/var/run/celery/%n.pid"
