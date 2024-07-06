@@ -23,6 +23,9 @@ firebase-admin = "*"
 django-googledrive-storage = "*"
 libmagic = "*"
 django-payments-razorpay = "*"
+celery = "*"
+redis = "*"
+django-celery-results = "*"
 
 [dev-packages]
 

@@ -1,4 +1,6 @@
+import os
 from rest_framework import serializers
+from core import settings
 from exizprint.models.services import (
     Services,
     FormFieldName,
@@ -7,10 +9,11 @@ from exizprint.models.services import (
     Notification,
     Banner,
     FileField,
-    PaymentModel,
+    PaymentModel,TempFileField
 )
-
-
+from core.task import upload_to_google
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files import File
 class FormFieldNameSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -82,25 +85,22 @@ class OrderSerializer(serializers.ModelSerializer):
             service=self.context.get("service"),
             bill=self.context.get("service").rate,
         )
-        self.context.get("id")['id'] = ordr.id
+        self.context.get("id")["id"] = ordr.id
 
         for key, value in self.context.get("fields").items():
             print(f"{key}, {value}")
             KeyValue.objects.create(order=ordr, key=key, value=value)
         for key, value in self.context.get("files").items():
-            print(f"key : {key},value : {value}")
-            FileField.objects.create(
-                field_name=key,
-                file=value,
-                order=ordr,
-            )
+            tempFile = TempFileField.objects.create(temp_file = value)
+            upload_to_google.delay(key=key, ordr_id = ordr.id, temp_id = tempFile.id)
         return data
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["message", "title", "image","created_at"]
+        fields = ["message", "title", "image", "created_at"]
+
 
 class BannerSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,21 +1,19 @@
+
 from datetime import timedelta
 from pathlib import Path
 from rest_framework.settings import api_settings
+import os
 
 import firebase_admin
 from firebase_admin import credentials
-from django.core.management.utils import get_random_secret_key
-import os
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_KEY", get_random_secret_key())
+SECRET_KEY = os.environ['DJANGO_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,13 +35,13 @@ INSTALLED_APPS = [
     # other packages
     "gdstorage",
     # "django_payments_razorpay",
-    
     "knox",
     "rest_framework",
     "post_office",
     "phonenumber_field",
     "accounts.apps.AccountsConfig",
     "exizprint.apps.ExizprintConfig",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -164,15 +162,16 @@ REST_KNOX = {
 EMAIL_BACKEND = "post_office.EmailBackend"
 
 EMAIL_HOST = "smtp-mail.outlook.com"
-EMAIL_HOST_USER = os.environ['EMAIL_USER']
+EMAIL_HOST_USER =os.environ['EMAIL_USER']
 EMAIL_PORT = 587
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASS']
 EMAIL_USE_TLS = True
 
 cred = credentials.Certificate(
-    os.environ['FIREBASE_CERTIFICATE']
+   os.environ['FIREBASE_CERTIFICATE']
 )
 firebase_admin.initialize_app(cred)
+
 GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = (
    os.environ['GSTORAGE_CERTIFICATE']
 )
@@ -182,7 +181,7 @@ GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = "/exizprint/"
 # s_key = "SyINQLSp1ULbWi0PDxgUhBXT"
 
 p_key = os.environ['RAZORPAY_PUBLIC']
-s_key = os.environ['RAZORPAY_SECRET']
+s_key =os.environ['RAZORPAY_SECRET']
 PAYMENT_VARIANTS = {
     "razorpay": (
         "django_payments_razorpay.RazorPayProvider",
@@ -190,3 +189,12 @@ PAYMENT_VARIANTS = {
     ),
 }
 CHECKOUT_PAYMENT_CHOICES = [('razorpay', 'RazorPay')]
+
+BACKGROUND_TASK_RUN_ASYNC = True
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
+
+CELERY_ACCEPT_CONTENT = {'application/json'}
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kolkata'

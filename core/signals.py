@@ -1,32 +1,37 @@
+import json
 from django.dispatch import receiver, Signal
 from django.db.models.signals import post_save
 from accounts.models.OTPModel import VerificationDevice
 from accounts.models.UserModel import User
 from core import settings
 
-from post_office import mail
+from post_office import mail, models
 from exizprint.models.services import Notification, Orders, NotificationToken
 from firebase_admin import messaging
 
-Send_Mail = Signal()
-Send_Notification = Signal()
+from django.core.mail import send_mail
 
 
-@receiver(Send_Mail)
-def SendMail(sender, data, **kwargs):
-    maildata = data.get("mail")
-    context = data.get("context")
-    mail.send(
-        [
-            sender.email,
-        ],
-        settings.EMAIL_HOST_USER,
-        subject=maildata.subject,
-        message=maildata.content,
-        html_message=maildata.html_content,
-        context=context,
-        priority="now",
-    )
+# def send_email_task(subject, message, from_email, recipient_list):
+#     send_mail(subject, message, from_email, recipient_list)
+
+
+
+# @receiver(Send_Mail)
+# def SendMail(sender, data, **kwargs):
+#     maildata = data.get("mail")
+#     context = data.get("context")
+#     mail.send(
+#         [
+#             sender.email,
+#         ],
+#         settings.EMAIL_HOST_USER,
+#         subject=maildata.subject,
+#         message=maildata.content,
+#         html_message=maildata.html_content,
+#         context=context,
+#         priority="now",
+#     )
 
 
 @receiver(post_save, sender=User)

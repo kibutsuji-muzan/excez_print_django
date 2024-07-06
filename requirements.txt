@@ -1,70 +1,92 @@
-asgiref==3.8.1
-attrs==23.2.0
-autobahn==23.6.2
-Automat==22.10.0
-bleach==6.1.0
-CacheControl==0.14.0
-cachetools==5.3.3
-certifi==2024.6.2
-cffi==1.16.0
-channels==4.1.0
-charset-normalizer==3.3.2
-constantly==23.10.4
-cryptography==42.0.8
-daphne==4.1.2
-Django==5.0.6
-django-filter==24.2
+-i https://pypi.org/simple
+amqp==5.2.0; python_version >= '3.6'
+asgiref==3.8.1; python_version >= '3.8'
+attrs==23.2.0; python_version >= '3.7'
+autobahn==23.6.2; python_version >= '3.9'
+automat==22.10.0
+billiard==4.2.0; python_version >= '3.7'
+bleach[css]==6.1.0; python_version >= '3.8'
+cachecontrol==0.14.0; python_version >= '3.7'
+cachetools==4.2.4; python_version ~= '3.5'
+celery==5.4.0; python_version >= '3.8'
+certifi==2024.7.4; python_version >= '3.6'
+cffi==1.16.0; platform_python_implementation != 'PyPy'
+channels==4.1.0; python_version >= '3.8'
+charset-normalizer==3.3.2; python_full_version >= '3.7.0'
+click==8.1.7; python_version >= '3.7'
+click-didyoumean==0.3.1; python_full_version >= '3.6.2'
+click-plugins==1.1.1
+click-repl==0.3.0; python_version >= '3.6'
+constantly==23.10.4; python_version >= '3.8'
+cryptography==42.0.8; python_version >= '3.7'
+daphne==4.1.2; python_version >= '3.8'
+django==5.0.6; python_version >= '3.10'
+django-celery-results==2.5.1
+django-filter==24.2; python_version >= '3.8'
+django-googledrive-storage==1.6.0
 django-material-admin==1.8.6
-django-otp==1.5.0
-django-phonenumber-field==7.3.0
+django-otp==1.5.0; python_version >= '3.7'
+django-payments==2.0.0
+django-payments-razorpay==1.0
+django-phonenumber-field[phonenumberslite]==7.3.0; python_version >= '3.8'
 django-post-office==3.8.0
-django-rest-knox==4.2.0
+django-rest-knox==4.2.0; python_version >= '3.6'
 django-upload-validator==1.1.6
-djangorestframework==3.15.1
-dnspython==2.6.1
-firebase-admin==6.5.0
-google-api-core==2.19.1
-google-api-python-client==2.134.0
-google-auth==2.30.0
+djangorestframework==3.15.1; python_version >= '3.6'
+dnspython==2.6.1; python_version >= '3.8'
+firebase-admin==6.5.0; python_version >= '3.7'
+google-api-core[grpc]==1.34.1; platform_python_implementation != 'PyPy'
+google-api-python-client==2.136.0; python_version >= '3.7'
+google-auth==1.35.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
 google-auth-httplib2==0.2.0
-google-cloud-core==2.4.1
-google-cloud-firestore==2.16.0
-google-cloud-storage==2.17.0
-google-crc32c==1.5.0
-google-resumable-media==2.7.1
-googleapis-common-protos==1.63.2
+google-cloud-core==2.4.1; python_version >= '3.7'
+google-cloud-firestore==2.15.0; platform_python_implementation != 'PyPy'
+google-cloud-storage==2.11.0; python_version >= '3.7'
+google-crc32c==1.5.0; python_version >= '3.7'
+google-resumable-media==2.7.1; python_version >= '3.7'
+googleapis-common-protos==1.63.2; python_version >= '3.7'
 grpcio==1.64.1
-grpcio-status==1.62.2
-httplib2==0.22.0
+grpcio-status==1.48.2
+httplib2==0.22.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 hyperlink==21.0.0
-idna==3.7
+idna==3.7; python_version >= '3.5'
 incremental==22.10.0
-msgpack==1.0.8
+kombu==5.3.7; python_version >= '3.8'
+libmagic==1.0
+msgpack==1.0.8; python_version >= '3.8'
 phonenumbers==8.13.38
-pillow==10.3.0
-proto-plus==1.24.0
-protobuf==4.25.3
-psycopg2-binary==2.9.9
-pyasn1==0.6.0
-pyasn1_modules==0.4.0
-pycparser==2.22
-pyIsEmail==2.0.1
-PyJWT==2.8.0
-pyOpenSSL==24.1.0
-pyparsing==3.1.2
-python-magic==0.4.27
+phonenumberslite==8.13.40
+pillow==10.3.0; python_version >= '3.8'
+prompt-toolkit==3.0.47; python_full_version >= '3.7.0'
+proto-plus==1.24.0; python_version >= '3.7'
+protobuf==3.20.3; python_version >= '3.7'
+psycopg2-binary==2.9.9; python_version >= '3.7'
+pyasn1==0.6.0; python_version >= '3.8'
+pyasn1-modules==0.4.0; python_version >= '3.8'
+pycparser==2.22; python_version >= '3.8'
+pyisemail==2.0.1; python_version >= '3.7'
+pyjwt[crypto]==2.8.0; python_version >= '3.7'
+pyopenssl==24.1.0
+pyparsing==3.1.2; python_version >= '3.1'
+python-dateutil==2.9.0.post0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+python-magic==0.4.27; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 pytz==2024.1
-requests==2.32.3
-rsa==4.9
+razorpay==1.4.2
+redis==5.0.7; python_version >= '3.7'
+requests==2.32.3; python_version >= '3.8'
+rsa==4.9; python_version >= '3.6'
 service-identity==24.1.0
-setuptools==70.1.1
-six==1.16.0
-sqlparse==0.5.0
+setuptools==70.2.0; python_version >= '3.8'
+six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+sqlparse==0.5.0; python_version >= '3.8'
 tinycss2==1.2.1
-Twisted==24.3.0
-txaio==23.1.1
-typing_extensions==4.12.2
-uritemplate==4.1.1
-urllib3==2.2.2
+twisted[tls]==24.3.0; python_full_version >= '3.8.0'
+txaio==23.1.1; python_version >= '3.7'
+typing-extensions==4.12.2; python_version >= '3.8'
+tzdata==2024.1; python_version >= '2'
+uritemplate==4.1.1; python_version >= '3.6'
+urllib3==2.2.2; python_version >= '3.8'
+vine==5.1.0; python_version >= '3.6'
+wcwidth==0.2.13
 webencodings==0.5.1
-zope.interface==6.4.post2
+zope-interface==6.4.post2; python_version >= '3.7'

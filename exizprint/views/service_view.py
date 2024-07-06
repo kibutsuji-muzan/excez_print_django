@@ -1,9 +1,11 @@
+import json
 import random
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import mixins
 
+from core.task import SendMail
 from exizprint.serializers.service_serializer import (
     PaymentSerializer,
     ServiceSerializer,
@@ -18,7 +20,7 @@ from exizprint.models.services import (
     FormFieldName,
     PaymentModel,
 )
-from accounts.models.UserModel import default_key
+from accounts.models.UserModel import User, default_key
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 import os
@@ -65,6 +67,18 @@ class ServiceView(
         serializer = ServiceSerializer(query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(methods=["get"], detail=False, url_name="testurl", url_path="testurl")
+    def TestUrl(self, request):
+        otp = 12345
+        user = User.objects.all()[0]
+        maildata = {
+            "mail": "get-otp",
+            "context": {"otp": otp},
+            "user_id": user.id,
+        }
+        SendMail.delay(maildata)
+        return Response(status=status.HTTP_200_OK)
+
 
 class OrdersView(
     mixins.RetrieveModelMixin,
@@ -109,7 +123,7 @@ class OrdersView(
                 "service": service,
                 "fields": fields,
                 "files": files,
-                "id":id
+                "id": id,
             },
         )
         if serializer.is_valid(raise_exception=True):
@@ -118,7 +132,7 @@ class OrdersView(
             return Response(
                 {
                     "response": "Your Order Has Been Placed",
-                    "id":id.get('id'),
+                    "id": id.get("id"),
                     "data": serializer.data,
                 }
             )
@@ -128,6 +142,7 @@ class OrdersView(
 class PaymentPortal(viewsets.GenericViewSet):
     http_method_names = ["get", "post"]
     permission_classes = [IsAuthenticated]
+
     @action(
         methods=["get"],
         detail=True,
@@ -150,14 +165,14 @@ class PaymentPortal(viewsets.GenericViewSet):
             payment = client.order.create(data=data)
             return Response(
                 {
-                    "order":order.id,
+                    "order": order.id,
                     "payment": {
                         "key": setting.p_key,
                         "amount": payment.get("amount"),
                         "name": service.name,
                         "order_id": payment.get("id"),
                         # "description": "Fine T-Shirt",
-                        "timeout": 60*10,
+                        "timeout": 60 * 10,
                         "prefill": {
                             "email": request.user.email,
                         },
@@ -196,7 +211,7 @@ class PaymentPortal(viewsets.GenericViewSet):
                 }
             )
             if valid:
-                order.status = 'paid'
+                order.status = "paid"
                 order.payment_status = True
                 order.save()
                 return Response("Successfull Payment", status=status.HTTP_200_OK)

@@ -34,11 +34,11 @@ class SignUpSerializer(serializers.ModelSerializer):
             if validate_password(data.get('password')) is None:
                 # print('password is valid')
                 print(data.get('email'))
-                user = User.objects.create(email = data.get('email').lower())
+                user = User.objects.create(email = data.get('email').lower(),is_active = False)
                 print(data.get('email'))
                 # Create_Profile.send(sender=user, data=data, email_phone=phone)
                 user.set_password(data.get('password'))
-                user.is_active = False
+                # user.is_active = False
                 user.save()
                 try:
                     token = NotificationToken.objects.get(token = data.get('fcm_token'))

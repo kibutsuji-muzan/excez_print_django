@@ -1,3 +1,4 @@
+import json
 from accounts.serializers.AccountSerializer import (
     SignUpSerializer,
     SignInSerializer,
@@ -7,7 +8,7 @@ from accounts.serializers.AccountSerializer import (
 )
 from accounts.models.UserModel import User, PassResetToken,token as tk
 from accounts.models.OTPModel import OTPToken
-from core.signals import Send_Mail
+# from core.signals import Send_Mail, SendMail
 from core import settings
 from exizprint.models.services import NotificationToken, Notification
 from exizprint.serializers.service_serializer import NotificationSerializer
@@ -99,12 +100,21 @@ class Base:
 
     def send_otp(self, user, otp):
         maildata = {
-            "mail": EmailTemplate.objects.get(name="get-otp"),
+            "mail": "get-otp",
             "context": {"otp": otp},
+            "user_id":user.id,
         }
-        if user.email:
-            Send_Mail.send(sender=user, data=maildata)
+        # if user.email:
+        #     SendMail(data=json.dump(maildata))
         return True
+    # def send_otp(self, user, otp):
+    #     maildata = {
+    #         "mail": EmailTemplate.objects.get(name="get-otp"),
+    #         "context": {"otp": otp},
+    #     }
+    #     if user.email:
+    #         Send_Mail.send(sender=user, data=maildata)
+    #     return True
 
     def send_reset_link(self, user, token, request, e_or_p):
         reset_link = reverse(
@@ -120,8 +130,8 @@ class Base:
         smsdata = {
             "message": f"Hi There Your Reset Link is {reset_link}",
         }
-        if e_or_p.get("email"):
-            Send_Mail.send(sender=user, data=maildata)
+        # if e_or_p.get("email"):
+        #     Send_Mail.send(sender=user, data=maildata)
         return True
 
 
@@ -483,3 +493,4 @@ class AccountsManagement(
             token.save()
         AuthToken.objects.filter(user=request.user.id).delete()
         return Response(status=status.HTTP_200_OK)
+    

@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from accounts.models.UserModel import User
@@ -5,6 +6,8 @@ import uuid
 
 from upload_validator import FileTypeValidator
 from gdstorage.storage import GoogleDriveStorage, GoogleDrivePermissionType, GoogleDrivePermissionRole, GoogleDriveFilePermission
+
+from core import settings
 
 validator = FileTypeValidator(
     allowed_types=['application/pdf', 'image/jpg', 'image/jpeg', 'image/png'],
@@ -85,8 +88,15 @@ class Banner(models.Model):
 class FileField(models.Model):
     id = models.AutoField(primary_key=True)
     field_name = models.CharField(_("Field Name"),max_length=200)
-    file= models.FileField(_("File"),upload_to='', storage=gd_storage, validators=[validator])
+    file= models.FileField(_("File"),upload_to='', storage=gd_storage,null=True,blank=True,validators=[validator])
     order = models.ForeignKey(Orders,on_delete=models.CASCADE,null=False, blank=False)
+
+class TempFileField(models.Model):
+    id = models.AutoField(primary_key=True)
+    temp_file = models.FileField(_("Temp File"),upload_to='Temp/',null=True,blank=True,validators=[validator])
+
+    def deleteTemp(self, *args, **kwargs):
+        os.remove(os.path.join(settings.MEDIA_ROOT, self.temp_file.name))
 
 class PaymentModel(models.Model):
     razorpay_order_id =  models.CharField(max_length=100,null=False, blank=False)
