@@ -103,7 +103,7 @@ class Base:
         maildata = {
             "mail": "get-otp",
             "context": {"otp": otp},
-            "user_id":user.email,
+            "email":user.email,
             "priority":"now"
         }
         if user.email:
@@ -333,7 +333,7 @@ class AccountsManagement(
                         request=request,
                     )
                     res["Response"] = (
-                        "User with This Email Or email Exist But Not Verified"
+                        "User with This Email Exist But Not Verified"
                     )
                     self.send_otp(user[0], otp)
 

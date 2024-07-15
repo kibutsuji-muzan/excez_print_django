@@ -11,9 +11,10 @@ from exizprint.models.services import FileField, TempFileField, Orders
 @shared_task(bind=True)
 def SendMail(self, data):
     print("data")
-    maildata = models.EmailTemplate.objects.get(name=data["mail"])
-    context = data["context"]
-    mail.send(
+    try:
+        maildata = models.EmailTemplate.objects.get(name=data["mail"])
+        context = data["context"]
+        mail.send(
         [
             data["email"],
         ],
@@ -23,7 +24,9 @@ def SendMail(self, data):
         html_message=maildata.html_content,
         context=context,
         priority=data["priority"],
-    )
+        )
+    except:
+        return data
     return "Done"
 
 

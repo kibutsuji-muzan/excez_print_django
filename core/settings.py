@@ -3,7 +3,7 @@ from datetime import timedelta
 from pathlib import Path
 from rest_framework.settings import api_settings
 import os
-
+from django.core.management.utils import get_random_secret_key
 import firebase_admin
 from firebase_admin import credentials
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -13,12 +13,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['DJANGO_KEY']
+SECRET_KEY = "django-insecure-m2v6w@+0j=&8gew)3&nj+d!k^=ob+4ylj1cytvd_a85sm3v63&"
 
+BACKGROUND_TASK_RUN_ASYNC = True
+CELERY_BROKER_URL = "redis://127.0.0.1:6379"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379"
+CELERY_ACCEPT_CONTENT = {'application/json'}
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kolkata'
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = [os.environ['DJANGO_ALLOWED_HOST']]
+#CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+#CELERY_ACCEPT_CONTENT = {'application/json'}
+#CELERY_RESULT_SERIALIZER = 'json'
+#CELERY_TASK_SERIALIZER = 'json'
+#CELERY_TIMEZONE = 'Europe/Paris'
+#CELERY_RESULT_BACKEND = 'django-db'
+
+DEBUG = False
+
+ALLOWED_HOSTS = [os.environ['DJANGO_ALLOWED_HOST'], "localhost","127.0.0.1"]
 
 # Application definition
 
@@ -189,21 +204,3 @@ PAYMENT_VARIANTS = {
     ),
 }
 CHECKOUT_PAYMENT_CHOICES = [('razorpay', 'RazorPay')]
-
-BACKGROUND_TASK_RUN_ASYNC = True
-CELERY_BROKER_URL = "redis://localhost:6379"
-CELERY_RESULT_BACKEND = "redis://localhost:6379"
-
-CELERY_ACCEPT_CONTENT = {'application/json'}
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Asia/Kolkata'
-
-CELERYD_NODES="worker"
-CELERY_BIN="home/ubuntu/exizprint/env/bin/celery"
-CELERY_APP="core"
-CELERYD_MULTI="multi"
-CELERYD_OPTS="--time-limit=300 --concurrency=8"
-CELERYD_LOG_LEVEL="INFO"
-CELERYD_LOG_FILE="/var/log/celery/%n%I.log"
-CELERYD_PID_FILE="/var/run/celery/%n.pid"

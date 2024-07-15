@@ -18,7 +18,7 @@ class VerificationDevice(Device):
         default=default_key(ranint(10,20)),
         validators=[hex_validator],
         help_text="Hex-encoded secret key to generate totp tokens.",
-        unique=True,
+        unique=False,
     )
     last_verified_counter = models.BigIntegerField(
         _("Last Verified Counter"),

@@ -99,7 +99,7 @@ class OrderSerializer(serializers.ModelSerializer):
         maildata = {
             "mail": "order-placed",
             "context": {"order_id": ordr.id, "service":self.context.get("service").name, "bill":self.context.get("service").rate},
-            "user_id": self.context.get("request").user.email,
+            "email": self.context.get("request").user.email,
             "priority": "now",
         }
         SendMail.delay(data=maildata)
