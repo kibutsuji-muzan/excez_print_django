@@ -28,7 +28,6 @@ class Services(models.Model):
      name = models.CharField(_('Service Name'), max_length=20, blank=False, null=True)
      desc = models.CharField(_('Description'), max_length=150, blank=True, null=True)
      image = models.ImageField(_("Image"), upload_to="ServiceImage/", default="ProfileImages/download.jpeg", validators=[FileTypeValidator(allowed_types=[ 'image/*'])])
-     rate = models.IntegerField(_("Price"), null=True,blank=True)
      def __str__(self):
         return str(self.name)
 
@@ -39,18 +38,24 @@ class Services(models.Model):
 class FormFieldName(models.Model):
     types = [('txt', 'Text'), ('ch', 'Choices'), ('int', 'Number'), ('file', 'File')]
     id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
-    service = models.ForeignKey(Services, on_delete=models.RESTRICT,null=True,related_name='field')
+    service = models.ForeignKey(Services, on_delete=models.DO_NOTHING,null=True,related_name='field')
     field_name = models.CharField(_('Field'),max_length=20,null=True)
     value = models.CharField(_('values if needed'),null=True,blank=True)
     field_type = models.CharField(_("FormFieldType"),choices=types)
+
+class ServiceRate(models.Model):
+    service = models.ForeignKey(Services, on_delete=models.CASCADE,related_name='price')
+    above = models.FloatField(_('Above Quantity'),null=True,blank=True)
+    price = models.FloatField(_('Rate Per Pcs.'),null=True,blank=True)
 
 class Orders(models.Model):
     STATUS = [('unpaid', 'unpaid'),('paid', 'paid'),('pending', 'pending'), ('in_progress', 'in_progress'), ('done', 'done'), ('cancelled', 'cancelled')]
     
     id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
-    service = models.ForeignKey(Services,on_delete=models.RESTRICT,null=False, related_name='order_of')
+    service = models.ForeignKey(Services,on_delete=models.DO_NOTHING,null=False, related_name='order_of')
     eta = models.DateField(_("ETA"),null=True,blank=True)
-    bill = models.IntegerField(_("Price"), null=True,blank=True)
+    bill = models.FloatField(_("Price"), null=False,blank=False)
+    quantity = models.IntegerField(_("Quantity"), null=False,blank=False)
     payment_status = models.BooleanField(_("Payment Status"), default=False)
     status = models.CharField(_('Status'),choices=STATUS, blank=True, null=True, default='unpaid')
 

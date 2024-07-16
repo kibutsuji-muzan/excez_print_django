@@ -1,5 +1,5 @@
 from django.contrib import admin
-from exizprint.models.services import Services,FormFieldName, Orders, KeyValue, NotificationToken, Notification,Banner, FileField, PaymentModel
+from exizprint.models.services import Services,FormFieldName, Orders, KeyValue, NotificationToken, Notification,Banner, FileField, PaymentModel, ServiceRate
 
 admin.site.register(NotificationToken)
 admin.site.register(Banner)
@@ -14,16 +14,20 @@ class FileFieldInline(admin.TabularInline):
     model = FileField
     extra = 0
 
+class PriceServiceInline(admin.TabularInline):
+    model = ServiceRate
+    extra = 0
+
 class KeyValueInline(admin.TabularInline):
     model = KeyValue
     extra = 0
 
 @admin.register(Services)
 class ServiceAdmin(admin.ModelAdmin):
-    inlines = [FormFieldInline]
+    inlines = [FormFieldInline, PriceServiceInline]
 
 @admin.register(Orders)
-class ServiceAdmin(admin.ModelAdmin):
+class OrderAdmin(admin.ModelAdmin):
     inlines = [KeyValueInline, FileFieldInline]
 
 @admin.action(description="Execute Signal")

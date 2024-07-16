@@ -11,6 +11,7 @@ from exizprint.models.services import (
     FileField,
     PaymentModel,
     TempFileField,
+    ServiceRate,
 )
 from core.task import SendMail, upload_to_google
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -23,13 +24,20 @@ class FormFieldNameSerializer(serializers.ModelSerializer):
         model = FormFieldName
         fields = ["field_name", "value", "field_type"]
 
+class ServicePriceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ServiceRate
+        fields = ["above", "price"]
+
 
 class ServiceSerializer(serializers.ModelSerializer):
     field = FormFieldNameSerializer(many=True)
+    price = ServicePriceSerializer(many=True)
 
     class Meta:
         model = Services
-        fields = ["name", "id", "desc", "field", "parent", "image", "rate"]
+        fields = ["name", "id", "desc", "field", "parent", "image", "price"]
 
 
 class SerializerOrder(serializers.ModelSerializer):
@@ -49,11 +57,9 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
 
-    # order_detail = OrderDetailSerializer(read_only=True, many=True)
-
     class Meta:
         model = Orders
-        fields = ["service"]
+        fields = ["service","quantity"]
 
     def validate(self, data):
 
@@ -82,23 +88,27 @@ class OrderSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, data):
-        print(f"data:{data}")
+        for val in sorted(self.context.get("service").price.all(), key=lambda price: price.above):
+            print(val.above)
+            if(val.above < data.get("quantity")):
+                bill = float(data.get("quantity")) * val.price
+
         ordr = self.Meta.model.objects.create(
             user=self.context.get("request").user,
             service=self.context.get("service"),
-            bill=self.context.get("service").rate,
+            bill=bill,
+            quantity = int(self.context.get("request").data.get("quantity"))
         )
         self.context.get("id")["id"] = ordr.id
 
         for key, value in self.context.get("fields").items():
-            print(f"{key}, {value}")
             KeyValue.objects.create(order=ordr, key=key, value=value)
         for key, value in self.context.get("files").items():
             tempFile = TempFileField.objects.create(temp_file=value)
             upload_to_google.delay(key=key, ordr_id=ordr.id, temp_id=tempFile.id)
         maildata = {
             "mail": "order-placed",
-            "context": {"order_id": ordr.id, "service":self.context.get("service").name, "bill":self.context.get("service").rate},
+            "context": {"order_id": ordr.id, "service":self.context.get("service").name, "bill":bill},
             "email": self.context.get("request").user.email,
             "priority": "now",
         }

@@ -74,7 +74,7 @@ class OrdersView(
     viewsets.GenericViewSet,
 ):
     http_method_names = ["get", "post"]
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = OrderSerializer
 
     def list(self, request):
@@ -96,6 +96,7 @@ class OrdersView(
             service = Services.objects.get(id=request.data.get("service"))
         except:
             return Response("Service Is Required")
+        sorted(service.price.all(), key=lambda price: price.above)
         fields = {}
         files = {}
         id = {}
@@ -145,7 +146,7 @@ class PaymentPortal(viewsets.GenericViewSet):
         if order.status == "unpaid":
             client = razorpay.Client(auth=(setting.p_key, setting.s_key))
             data = {
-                "amount": service.rate * 100,
+                "amount": order.bill,
                 "currency": "INR",
                 "receipt": default_key(20),
             }

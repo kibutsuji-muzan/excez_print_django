@@ -1,4 +1,3 @@
-
 from datetime import timedelta
 from pathlib import Path
 from rest_framework.settings import api_settings
