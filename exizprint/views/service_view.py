@@ -1,11 +1,13 @@
 import json
 import random
 from rest_framework import viewsets
+from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import mixins
-
-from core.task import SendMail
+from django.shortcuts import render
+from django.views import View
+from rest_framework.renderers import TemplateHTMLRenderer
 from exizprint.serializers.service_serializer import (
     PaymentSerializer,
     ServiceSerializer,
@@ -205,3 +207,24 @@ class PaymentPortal(viewsets.GenericViewSet):
                 return Response("Successfull Payment", status=status.HTTP_200_OK)
             return Response("Signature Not Valid", status=status.HTTP_400_BAD_REQUEST)
         return Response("Already Paid Order", status=status.HTTP_400_BAD_REQUEST)
+
+
+class PrivacyPolicy(viewsets.GenericViewSet):
+    renderer_classes = [TemplateHTMLRenderer]
+    @action(
+        methods=["get"],
+        detail=False,
+        url_name="policy",
+        url_path="policy",
+    )
+    def privacypolicy(self, request, *args, **kwargs):
+        return Response(template_name='PrivacyPolicy.html')
+    
+    @action(
+        methods=["get"],
+        detail=False,
+        url_name="terms",
+        url_path="terms",
+    )
+    def termscondition(self, request, *args, **kwargs):
+        return Response(template_name='TermsAndCondition.html')
