@@ -228,3 +228,12 @@ class PrivacyPolicy(viewsets.GenericViewSet):
     )
     def termscondition(self, request, *args, **kwargs):
         return Response(template_name='TermsAndCondition.html')
+    
+    @action(
+        methods=["get"],
+        detail=False,
+        url_name="donate",
+        url_path="donate",
+    )
+    def donation(self, request, *args, **kwargs):
+        return Response(template_name='SupportUs.html')
