@@ -30,7 +30,7 @@ CELERY_TIMEZONE = 'Asia/Kolkata'
 #CELERY_TIMEZONE = 'Europe/Paris'
 #CELERY_RESULT_BACKEND = 'django-db'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [os.environ['DJANGO_ALLOWED_HOST'], "localhost","127.0.0.1"]
 

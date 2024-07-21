@@ -146,7 +146,7 @@ class PaymentPortal(viewsets.GenericViewSet):
         if order.status == "unpaid":
             client = razorpay.Client(auth=(setting.p_key, setting.s_key))
             data = {
-                "amount": order.bill,
+                "amount": order.bill*100,
                 "currency": "INR",
                 "receipt": default_key(20),
             }
@@ -160,7 +160,7 @@ class PaymentPortal(viewsets.GenericViewSet):
                         "name": service.name,
                         "order_id": payment.get("id"),
                         # "description": "Fine T-Shirt",
-                        "timeout": 60 * 10,
+                        "timeout": 60 * 15,
                         "prefill": {
                             "email": request.user.email,
                         },
