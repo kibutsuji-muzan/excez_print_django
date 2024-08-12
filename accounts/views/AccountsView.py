@@ -368,13 +368,6 @@ class AccountsManagement(
                     f"User with This Email Already Exist And Verified",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            maildata = {
-                "mail": "registration",
-                "email": user.email,
-                "priority": "now",
-            }
-            if user.email:
-                SendMail.delay(maildata)
             user = serializer.create(data=serializer.data)
             otp, token = self.get_otp(user)
             print(token, otp)
@@ -388,6 +381,13 @@ class AccountsManagement(
             res["Resend-OTP"] = reverse(
                 "accounts-resend_otp", kwargs={"pk": token.token}, request=request
             )
+            maildata = {
+                "mail": "registration",
+                "email": user.email,
+                "priority": "now",
+            }
+            if user.email:
+                SendMail.delay(maildata)
             self.send_otp(user, otp)
             return Response(res)
         return Response({"status": 400})
