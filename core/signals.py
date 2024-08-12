@@ -9,7 +9,7 @@ from post_office import mail, models
 from exizprint.models.services import Notification, Orders, NotificationToken
 from firebase_admin import messaging
 
-from django.core.mail import send_mail
+from core.task import SendMail
 
 
 # def send_email_task(subject, message, from_email, recipient_list):
@@ -48,6 +48,12 @@ def on_change(sender, instance, created, **kwargs):
         message=f"Your Status For Order {instance.service.name} is Updated to {instance.status}",
         user = instance.user
     )
+    maildata = {
+        "mail": "service-update",
+        "email": instance.user.email,
+        "priority": "now",
+    }
+    SendMail.delay(maildata)
     print("order update")
     for tkn in tokens:
         notification.token.add(tkn)
