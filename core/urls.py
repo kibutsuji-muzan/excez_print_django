@@ -33,6 +33,7 @@ router.register(r'p', PrivacyPolicy, basename='privacy')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # path('test', testview),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)+static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 urlpatterns += router.urls

@@ -28,6 +28,7 @@ from rest_framework.decorators import action
 import os
 import razorpay.client
 import core.settings as setting
+from core.task import SendMail
 
 
 class ServiceView(
@@ -118,7 +119,12 @@ class OrdersView(
         )
         if serializer.is_valid(raise_exception=True):
             serializer.create(serializer.data)
-
+            maildata = {
+                "mail": "init-service",
+                "email": request.user.email,
+                "priority": "now",
+            }
+            SendMail.delay(maildata)
             return Response(
                 {
                     "response": "Your Order Has Been Placed",

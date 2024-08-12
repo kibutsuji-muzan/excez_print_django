@@ -6,8 +6,9 @@ from accounts.serializers.AccountSerializer import (
     ChangePasswordSerializer,
     UserSerializer,
 )
-from accounts.models.UserModel import User, PassResetToken,token as tk
+from accounts.models.UserModel import User, PassResetToken, token as tk
 from accounts.models.OTPModel import OTPToken
+
 # from core.signals import Send_Mail, SendMail
 from core import settings
 from core.task import SendMail
@@ -103,8 +104,8 @@ class Base:
         maildata = {
             "mail": "get-otp",
             "context": {"otp": otp},
-            "email":user.email,
-            "priority":"now"
+            "email": user.email,
+            "priority": "now",
         }
         if user.email:
             SendMail.delay(maildata)
@@ -177,12 +178,37 @@ class OTPManagement:
             if otp is not None:
                 res["Response"] = "OTP is incorrect"
                 if totp.verify_token(otp):
-                    res = {"signin-url": reverse("accounts-signin", request=request)}
                     token.delete()
                     user.is_active = True
                     user.save()
                     user.refresh_from_db
-                    return Response(res)
+
+                    token_limit_per_user = self.get_token_limit_per_user()
+                    if token_limit_per_user is not None:
+                        now = timezone.now()
+                        token = request.user.auth_token_set.filter(expiry__gt=now)
+                        if token.count() >= token_limit_per_user:
+                            return Response(
+                                {
+                                    "error": "Maximum amount of tokens allowed per user exceeded."
+                                },
+                                status=status.HTTP_403_FORBIDDEN,
+                            )
+                    token_ttl = self.get_token_ttl()
+                    instance, token = AuthToken.objects.create(user, token_ttl)
+                    print(instance, token)
+                    data = self.get_post_response_data(
+                        request=request, token=token, instance=instance, user=user
+                    )
+                    maildata = {
+                        "mail": "registration-complete",
+                        "email": user.email,
+                        "priority": "now",
+                    }
+                    if user.email:
+                        SendMail.delay(maildata)
+                    print(data)
+                    return Response(data)
                 return Response(res, status.HTTP_400_BAD_REQUEST)
             return Response(res)
         return Response("User With This Key Not Exist")
@@ -332,19 +358,23 @@ class AccountsManagement(
                         kwargs={"pk": token.token},
                         request=request,
                     )
-                    res["Response"] = (
-                        "User with This Email Exist But Not Verified"
-                    )
+                    res["Response"] = "User with This Email Exist But Not Verified"
                     self.send_otp(user[0], otp)
 
                     print(otp)
-                    return Response(res,status=status.HTTP_409_CONFLICT)
+                    return Response(res, status=status.HTTP_409_CONFLICT)
 
                 return Response(
                     f"User with This Email Already Exist And Verified",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
+            maildata = {
+                "mail": "registration",
+                "email": user.email,
+                "priority": "now",
+            }
+            if user.email:
+                SendMail.delay(maildata)
             user = serializer.create(data=serializer.data)
             otp, token = self.get_otp(user)
             print(token, otp)
@@ -367,7 +397,9 @@ class AccountsManagement(
 
         token_limit_per_user = self.get_token_limit_per_user()
         serializer = SignInSerializer(data=request.data, context={"request": request})
-
+        # print(request.META['HTTP_USER_AGENT'])
+        # print(request.META['REMOTE_HOST'])
+        # print(request.META['REMOTE_ADDR'])
         if serializer.is_valid(raise_exception=True):
             print("valid")
             data = serializer.data
@@ -461,14 +493,18 @@ class AccountsManagement(
     )
     def get_notification(self, request):
         try:
-            tkn = str(request.META.get("QUERY_STRING")).split("=")[1].replace("%3A", ":")
+            tkn = (
+                str(request.META.get("QUERY_STRING")).split("=")[1].replace("%3A", ":")
+            )
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         token = NotificationToken.objects.filter(token=tkn)
-        if(request.user.is_anonymous):
-            query = Notification.objects.filter(token=token[0], user = None)
+        if request.user.is_anonymous:
+            query = Notification.objects.filter(token=token[0], user=None)
         else:
-            query = Notification.objects.filter(Q(token=token[0]) or Q(user = request.user))
+            query = Notification.objects.filter(
+                Q(token=token[0]) or Q(user=request.user)
+            )
         serializer = NotificationSerializer(query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -487,4 +523,3 @@ class AccountsManagement(
             token.save()
         AuthToken.objects.filter(user=request.user.id).delete()
         return Response(status=status.HTTP_200_OK)
-    
