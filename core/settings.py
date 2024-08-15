@@ -173,13 +173,21 @@ REST_KNOX = {
 
 ###----Emailing Settings----###
 
+#EMAIL_BACKEND = "post_office.EmailBackend"
+#EMAIL_HOST = "smtp-mail.outlook.com"
+#EMAIL_HOST_USER =os.environ['EMAIL_USER']
+#EMAIL_PORT = 587
+#EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASS']
+#EMAIL_USE_TLS = True
+
 EMAIL_BACKEND = "post_office.EmailBackend"
 
-EMAIL_HOST = "smtp-mail.outlook.com"
+EMAIL_HOST = "smtp.hostinger.com"
 EMAIL_HOST_USER =os.environ['EMAIL_USER']
-EMAIL_PORT = 587
+EMAIL_PORT = 465
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASS']
-EMAIL_USE_TLS = True
+EMAIL_USE_SSL = True
+
 
 cred = credentials.Certificate(
    os.environ['FIREBASE_CERTIFICATE']
@@ -190,9 +198,6 @@ GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = (
    os.environ['GSTORAGE_CERTIFICATE']
 )
 GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = "/exizprint/"
-
-# p_key = "rzp_live_T4OUcMc96AitBE"
-# s_key = "SyINQLSp1ULbWi0PDxgUhBXT"
 
 p_key = os.environ['RAZORPAY_PUBLIC']
 s_key =os.environ['RAZORPAY_SECRET']

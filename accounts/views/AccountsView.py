@@ -116,17 +116,12 @@ class Base:
             "accounts-pass_reset", kwargs={"pk": token.token}, request=request
         )
         maildata = {
-            "mail": EmailTemplate.objects.get(name="get-reset-link"),
+            "mail":  "get-reset-link",
             "context": {"reset_link": reset_link},
+            "email": user.email,
+            "priority": "now",
         }
-
-        print(reset_link)
-
-        smsdata = {
-            "message": f"Hi There Your Reset Link is {reset_link}",
-        }
-        # if e_or_p.get("email"):
-        #     Send_Mail.send(sender=user, data=maildata)
+        SendMail.delay(maildata)
         return True
 
 
@@ -309,7 +304,7 @@ class PasswordManagement:
         serializer = ChangePasswordSerializer(
             data=request.data, context={"user": request.user}
         )
-        if serializer.is_valid:
+        if serializer.is_valid(raise_exception=True):
             serializer.update(data=serializer.data)
             return Response("Password Change Successfull")
         return Response("Invalid", status=status.HTTP_400_BAD_REQUEST)
