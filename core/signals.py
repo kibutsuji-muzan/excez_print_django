@@ -11,29 +11,6 @@ from firebase_admin import messaging
 
 from core.task import SendMail
 
-
-# def send_email_task(subject, message, from_email, recipient_list):
-#     send_mail(subject, message, from_email, recipient_list)
-
-
-
-# @receiver(Send_Mail)
-# def SendMail(sender, data, **kwargs):
-#     maildata = data.get("mail")
-#     context = data.get("context")
-#     mail.send(
-#         [
-#             sender.email,
-#         ],
-#         settings.EMAIL_HOST_USER,
-#         subject=maildata.subject,
-#         message=maildata.content,
-#         html_message=maildata.html_content,
-#         context=context,
-#         priority="now",
-#     )
-
-
 @receiver(post_save, sender=User)
 def createOtp(sender, instance, created, **kwargs):
     if created:
@@ -52,9 +29,9 @@ def on_change(sender, instance, created, **kwargs):
         "mail": "service-update",
         "email": instance.user.email,
         "priority": "now",
+        "context":{"status":instance.status}
     }
     SendMail.delay(maildata)
-    print("order update")
     for tkn in tokens:
         notification.token.add(tkn)
         notification.save()

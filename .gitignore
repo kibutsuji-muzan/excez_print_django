@@ -4,5 +4,5 @@
 */__pycache__/
 /static/*
 /media/*
-/core/settings.py
 /db.sqlite3
+core/setting.py

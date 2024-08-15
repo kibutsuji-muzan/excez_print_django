@@ -38,7 +38,7 @@ class Services(models.Model):
 class FormFieldName(models.Model):
     types = [('txt', 'Text'), ('ch', 'Choices'), ('int', 'Number'), ('file', 'File')]
     id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
-    service = models.ForeignKey(Services, on_delete=models.DO_NOTHING,null=True,related_name='field')
+    service = models.ForeignKey(Services, on_delete=models.SET_NULL,null=True,related_name='field')
     field_name = models.CharField(_('Field'),max_length=20,null=True)
     value = models.CharField(_('values if needed'),null=True,blank=True)
     field_type = models.CharField(_("FormFieldType"),choices=types)
@@ -52,7 +52,7 @@ class Orders(models.Model):
     STATUS = [('unpaid', 'unpaid'),('paid', 'paid'),('pending', 'pending'), ('in_progress', 'in_progress'), ('done', 'done'), ('cancelled', 'cancelled')]
     
     id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
-    service = models.ForeignKey(Services,on_delete=models.DO_NOTHING,null=False, related_name='order_of')
+    service = models.ForeignKey(Services,on_delete=models.SET_NULL,null=True, related_name='order_of')
     eta = models.DateField(_("ETA"),null=True,blank=True)
     bill = models.FloatField(_("Price"), null=False,blank=False)
     quantity = models.IntegerField(_("Quantity"), null=False,blank=False)
@@ -69,7 +69,7 @@ class KeyValue(models.Model):
 
 class NotificationToken(models.Model):
     token = models.CharField(_('FCM Token'), blank=False, null=False)
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, related_name='fcmtoken')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='fcmtoken')
 
     def __str__(self):
         return self.token
@@ -80,7 +80,7 @@ class Notification(models.Model):
     image = models.ImageField(_("Image"), upload_to="ServiceImage/",validators=[FileTypeValidator(allowed_types=[ 'image/*'])], null=True, blank=True)
     token  = models.ManyToManyField(NotificationToken, null=False, blank=False, related_name='fcm_token')
     created_at = models.DateTimeField(auto_now=True,editable=False)
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, related_name='noti_of')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='noti_of')
 
     def __str__(self):
         return str(self.title)
@@ -107,4 +107,4 @@ class PaymentModel(models.Model):
     razorpay_order_id =  models.CharField(max_length=100,null=False, blank=False)
     razorpay_payment_id =  models.CharField(max_length=100,null=False, blank=False)
     razorpay_signature =  models.CharField(max_length=100,null=False, blank=False)
-    ordr = models.ForeignKey(Orders,on_delete=models.DO_NOTHING,null=False, blank=False)
+    ordr = models.ForeignKey(Orders,on_delete=models.SET_NULL,null=True, blank=False)
