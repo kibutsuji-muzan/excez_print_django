@@ -31,6 +31,12 @@ from django.contrib.auth.signals import user_logged_in
 
 from django.utils import timezone
 from django.db.models import Q
+from django.views import View
+from django.shortcuts import render, redirect
+from accounts.forms.reset_password import PasswordRestForm
+
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
 
 # ------------------------------------------------------------#
 # -------- Implement Logout User Later In Next Commit --------#
@@ -116,12 +122,20 @@ class Base:
             "accounts-pass_reset", kwargs={"pk": token.token}, request=request
         )
         maildata = {
+<<<<<<< HEAD
             "mail":  "get-reset-link",
+=======
+            "mail": "get-reset-link",
+>>>>>>> f19118a3 (added reset)
             "context": {"reset_link": reset_link},
             "email": user.email,
             "priority": "now",
         }
         SendMail.delay(maildata)
+<<<<<<< HEAD
+=======
+        print(reset_link)
+>>>>>>> f19118a3 (added reset)
         return True
 
 
@@ -263,32 +277,7 @@ class PasswordManagement:
         token = self.create_token(user=user)
 
         if self.send_reset_link(user, token, request, email):
-
             return Response("Reset Link Has Been Sent To Your Email")
-        return Response(
-            "Something Went Wrong", status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-    @action(
-        methods=["post"], detail=True, url_name="pass_reset", url_path="password-reset"
-    )
-    def password_reset(self, request, pk):
-        try:
-            token = PassResetToken.objects.get(token=pk)
-        except:
-            return Response(
-                "Your Token Is Expired Or Incorrect", status=status.HTTP_400_BAD_REQUEST
-            )
-        serializer = PasswordResetSerializer(
-            data=request.data, context={"user": token.user}
-        )
-        if serializer.is_valid(raise_exception=True):
-            return Response(
-                {
-                    "Response": "Your Password Has Been Reset",
-                    "signin-url": reverse("accounts-signin", request=request),
-                }
-            )
         return Response(
             "Something Went Wrong", status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
@@ -309,8 +298,6 @@ class PasswordManagement:
             return Response("Password Change Successfull")
         return Response("Invalid", status=status.HTTP_400_BAD_REQUEST)
 
-
-# Master Class Used In Urls
 class AccountsManagement(
     Base, OTPManagement, PasswordManagement, viewsets.GenericViewSet
 ):
@@ -518,3 +505,44 @@ class AccountsManagement(
             token.save()
         AuthToken.objects.filter(user=request.user.id).delete()
         return Response(status=status.HTTP_200_OK)
+
+
+class PasswordRest(View):
+
+    def get(self, request, token):
+        print(token)
+        try:
+            tkn = PassResetToken.objects.get(token=token)
+        except:
+            return render(request,"404.html")
+        return render(request, "ResetPassword.html", {"form": PasswordRestForm()})
+
+    def post(self, request, token):
+        try:
+            tkn = PassResetToken.objects.get(token=token)
+        except:
+            return render(request,"404.html")
+        data = request.POST
+        Form = PasswordRestForm(data)
+        print(data)
+        if Form.is_valid():
+            errors = []
+            if data.get("password1") == data.get("password2"):
+                try:
+                    if validate_password(data.get("password1")) is None:
+                        user = tkn.user
+                        user.set_password(data.get("password1"))
+                        user.save()
+                        user.reset_token.delete()
+                        user.refresh_from_db
+                except ValidationError as e:
+                    for error in e:
+                        errors.append(str(error))
+                    return render(
+                        request, "ResetPassword.html", {"form": Form, "error": error}
+                    )
+            return render(request, "ResetSuccessful.html")
+        else:
+            error = "Correct Below Errors"
+            print(Form.errors)
+            return render(request, "ResetPassword.html", {"form": Form, "error": error})

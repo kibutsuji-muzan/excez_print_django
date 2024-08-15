@@ -141,10 +141,8 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         if data.get('new_pass0') == data.get('new_pass1'):
             user = self.context.get('user')
             if user.check_password(data.get('prev_pass')):
-
-
                 return data
-            raise serializers.ValidationError('Previous Password Not Correct')
+            raise serializers.ValidationError('Incorrect Password')
         raise serializers.ValidationError('New Passwords Must Be Same')
     
     def update(self, data):
