@@ -118,24 +118,15 @@ class Base:
         return True
 
     def send_reset_link(self, user, token, request, e_or_p):
-        reset_link = reverse(
-            "accounts-pass_reset", kwargs={"pk": token.token}, request=request
-        )
+        reset_link = f'http://18.205.27.242/accounts/{token.token}/password-reset'
         maildata = {
-<<<<<<< HEAD
             "mail":  "get-reset-link",
-=======
             "mail": "get-reset-link",
->>>>>>> f19118a3 (added reset)
             "context": {"reset_link": reset_link},
             "email": user.email,
             "priority": "now",
         }
         SendMail.delay(maildata)
-<<<<<<< HEAD
-=======
-        print(reset_link)
->>>>>>> f19118a3 (added reset)
         return True
 
 
