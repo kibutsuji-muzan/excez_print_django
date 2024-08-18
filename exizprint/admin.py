@@ -1,9 +1,10 @@
 from django.contrib import admin
-from exizprint.models.services import Services,FormFieldName, Orders, KeyValue, NotificationToken, Notification,Banner, FileField, PaymentModel, ServiceRate
+from exizprint.models.services import Services,FormFieldName, Orders, KeyValue, NotificationToken, Notification,Banner, FileField, PaymentModel, ServiceRate, CheckOut
 
 admin.site.register(NotificationToken)
 admin.site.register(Banner)
 admin.site.register(PaymentModel)
+admin.site.register(CheckOut)
 
 
 class FormFieldInline(admin.TabularInline):

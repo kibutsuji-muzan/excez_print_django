@@ -9,6 +9,8 @@ from gdstorage.storage import GoogleDriveStorage, GoogleDrivePermissionType, Goo
 
 from core import settings
 
+from phonenumber_field.modelfields import PhoneNumberField
+
 validator = FileTypeValidator(
     allowed_types=['application/pdf', 'image/jpg', 'image/jpeg', 'image/png'],
     allowed_extensions=['.png', '.jpg', '.jpeg','.pdf']
@@ -78,7 +80,7 @@ class Notification(models.Model):
     message = models.CharField(max_length=100,null=True, blank=True)
     title = models.CharField(max_length=100,null=True, blank=True)
     image = models.ImageField(_("Image"), upload_to="ServiceImage/",validators=[FileTypeValidator(allowed_types=[ 'image/*'])], null=True, blank=True)
-    token  = models.ManyToManyField(NotificationToken, null=False, blank=False, related_name='fcm_token')
+    token  = models.ManyToManyField(NotificationToken, blank=False, related_name='fcm_token')
     created_at = models.DateTimeField(auto_now=True,editable=False)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='noti_of')
 
@@ -108,3 +110,13 @@ class PaymentModel(models.Model):
     razorpay_payment_id =  models.CharField(max_length=100,null=False, blank=False)
     razorpay_signature =  models.CharField(max_length=100,null=False, blank=False)
     ordr = models.ForeignKey(Orders,on_delete=models.SET_NULL,null=True, blank=False)
+
+class CheckOut(models.Model):
+    address = models.CharField(_("address"),max_length=100,null=False, blank=False)
+    first_name = models.CharField(_("First Name"),max_length=100,null=False, blank=False)
+    last_name = models.CharField(_("Last Name"),max_length=100,null=False, blank=False)
+    pin_code = models.IntegerField(_("Pin Code"),null=False, blank=False)
+    house_number = models.CharField(_("House Number"),max_length=100,null=False, blank=False)
+    phone_number = PhoneNumberField(_("Phone Number"),region="IN", null = False)
+    active = models.BooleanField(default=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='checkout')

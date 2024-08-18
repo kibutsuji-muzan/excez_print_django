@@ -12,6 +12,7 @@ from exizprint.models.services import (
     PaymentModel,
     TempFileField,
     ServiceRate,
+    CheckOut,
 )
 from core.task import SendMail, upload_to_google
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -23,6 +24,7 @@ class FormFieldNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormFieldName
         fields = ["field_name", "value", "field_type"]
+
 
 class ServicePriceSerializer(serializers.ModelSerializer):
 
@@ -55,19 +57,33 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields = ["key", "value"]
 
 
+class CheckoutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CheckOut
+        fields = [
+            "address",
+            "first_name",
+            "last_name",
+            "pin_code",
+            "house_number",
+            "phone_number",
+            "user",
+        ]
+
+    # def validate(self, data):
+
+
+    # def create(self, validated_data):
+
+    #     return super().create(validated_data)
+
 class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Orders
-        fields = ["service","quantity"]
+        fields = ["service", "quantity"]
 
     def validate(self, data):
-
-        print("\n")
-        print("\n")
-        print(self.context.get("fields").keys())
-        print("\n")
-        print("\n")
         ser_fields = FormFieldName.objects.filter(service=self.context.get("service"))
         s_fields = self.context.get("fields").copy()
         for field in ser_fields:
@@ -88,16 +104,18 @@ class OrderSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, data):
-        for val in sorted(self.context.get("service").price.all(), key=lambda price: price.above):
+        for val in sorted(
+            self.context.get("service").price.all(), key=lambda price: price.above
+        ):
             print(val.above)
-            if(val.above < data.get("quantity")):
+            if val.above < data.get("quantity"):
                 bill = float(data.get("quantity")) * val.price
 
         ordr = self.Meta.model.objects.create(
             user=self.context.get("request").user,
             service=self.context.get("service"),
             bill=bill,
-            quantity = int(self.context.get("request").data.get("quantity"))
+            quantity=int(self.context.get("request").data.get("quantity")),
         )
         self.context.get("id")["id"] = ordr.id
 
@@ -108,7 +126,11 @@ class OrderSerializer(serializers.ModelSerializer):
             upload_to_google.delay(key=key, ordr_id=ordr.id, temp_id=tempFile.id)
         maildata = {
             "mail": "order-placed",
-            "context": {"order_id": ordr.id, "service":self.context.get("service").name, "bill":bill},
+            "context": {
+                "order_id": ordr.id,
+                "service": self.context.get("service").name,
+                "bill": bill,
+            },
             "email": self.context.get("request").user.email,
             "priority": "now",
         }

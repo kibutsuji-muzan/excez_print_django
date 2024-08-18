@@ -13,14 +13,14 @@ from exizprint.serializers.service_serializer import (
     ServiceSerializer,
     OrderSerializer,
     SerializerOrder,
-    BannerSerializer,
+    BannerSerializer,CheckoutSerializer
 )
 from exizprint.models.services import (
     Services,
     Orders,
     Banner,
     FormFieldName,
-    PaymentModel,
+    PaymentModel,CheckOut
 )
 from accounts.models.UserModel import User, default_key
 from rest_framework.permissions import IsAuthenticated
@@ -69,6 +69,7 @@ class ServiceView(
 
         serializer = ServiceSerializer(query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class OrdersView(
     mixins.RetrieveModelMixin,
@@ -134,6 +135,57 @@ class OrdersView(
             )
         return Response("something went wrong", status=status.HTTP_400_BAD_REQUEST)
 
+    # @action(
+    #     methods=["get"],
+    #     detail=True,
+    #     url_name="create_checkout",
+    #     url_path="create-checkout",
+    # )
+    # def createCheckout(self, request):
+    #     serializer = CheckoutSerializer(data = request.data)
+    #     if serializer.is_valid(raise_exception=True):
+    #         serializer.create()
+    #         return Response("Checkout Created")
+    #     return Response("somethig went wrong", status=status.HTTP_400_BAD_REQUEST)
+
+
+class CheckoutView(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+    ):
+    http_method_names = ["get", "post", "delete"]
+    permission_classes = [IsAuthenticated]
+
+    def list(self,request):
+        query = CheckOut.objects.filter(user=request.user, active = True)
+        serializer = CheckoutSerializer(query, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        data = request.data.copy()
+        data['user'] = request.user.id
+        serializer = CheckoutSerializer(data=data)
+        if(serializer.is_valid(raise_exception=True)):
+            serializer.create()
+            return Response("Checkout data saved")
+        return Response("Something went wrong")
+        
+    @action(
+        methods=["delete"],
+        detail=True,
+        url_name="delete_checkout",
+        url_path="delete-checkout",
+    )
+    def delete(self, request, pk):
+        try:
+            co = CheckOut.objects.get(id=pk)
+        except:
+            return Response('object not found', status=status.HTTP_400_BAD_REQUEST)
+        co.active = False
+        co.save()
+        return Response('checkout deleted success')
+
 
 class PaymentPortal(viewsets.GenericViewSet):
     http_method_names = ["get", "post"]
@@ -154,7 +206,7 @@ class PaymentPortal(viewsets.GenericViewSet):
         if order.status == "unpaid":
             client = razorpay.Client(auth=(setting.p_key, setting.s_key))
             data = {
-                "amount": order.bill*100,
+                "amount": order.bill * 100,
                 "currency": "INR",
                 "receipt": default_key(20),
             }
@@ -217,6 +269,7 @@ class PaymentPortal(viewsets.GenericViewSet):
 
 class PrivacyPolicy(viewsets.GenericViewSet):
     renderer_classes = [TemplateHTMLRenderer]
+
     @action(
         methods=["get"],
         detail=False,
@@ -224,8 +277,8 @@ class PrivacyPolicy(viewsets.GenericViewSet):
         url_path="policy",
     )
     def privacypolicy(self, request, *args, **kwargs):
-        return Response(template_name='PrivacyPolicy.html')
-    
+        return Response(template_name="PrivacyPolicy.html")
+
     @action(
         methods=["get"],
         detail=False,
@@ -233,8 +286,8 @@ class PrivacyPolicy(viewsets.GenericViewSet):
         url_path="terms",
     )
     def termscondition(self, request, *args, **kwargs):
-        return Response(template_name='TermsAndCondition.html')
-    
+        return Response(template_name="TermsAndCondition.html")
+
     @action(
         methods=["get"],
         detail=False,
@@ -242,4 +295,4 @@ class PrivacyPolicy(viewsets.GenericViewSet):
         url_path="donate",
     )
     def donation(self, request, *args, **kwargs):
-        return Response(template_name='SupportUs.html')
+        return Response(template_name="SupportUs.html")

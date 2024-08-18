@@ -5,6 +5,7 @@ import os
 from django.core.management.utils import get_random_secret_key
 import firebase_admin
 from firebase_admin import credentials
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -17,22 +18,22 @@ SECRET_KEY = "django-insecure-m2v6w@+0j=&8gew)3&nj+d!k^=ob+4ylj1cytvd_a85sm3v63&
 BACKGROUND_TASK_RUN_ASYNC = True
 CELERY_BROKER_URL = "redis://127.0.0.1:6379"
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379"
-CELERY_ACCEPT_CONTENT = {'application/json'}
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Asia/Kolkata'
+CELERY_ACCEPT_CONTENT = {"application/json"}
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
+CELERY_TIMEZONE = "Asia/Kolkata"
 # SECURITY WARNING: don't run with debug turned on in production!
 
-#CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
-#CELERY_ACCEPT_CONTENT = {'application/json'}
-#CELERY_RESULT_SERIALIZER = 'json'
-#CELERY_TASK_SERIALIZER = 'json'
-#CELERY_TIMEZONE = 'Europe/Paris'
-#CELERY_RESULT_BACKEND = 'django-db'
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+# CELERY_ACCEPT_CONTENT = {'application/json'}
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_TIMEZONE = 'Europe/Paris'
+# CELERY_RESULT_BACKEND = 'django-db'
 
 DEBUG = True
 
-ALLOWED_HOSTS = [os.environ['DJANGO_ALLOWED_HOST'], "localhost","127.0.0.1"]
+ALLOWED_HOSTS = ["18.205.27.242", "localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -98,9 +99,9 @@ CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": os.environ['DB_NAME'],
-        "USER": os.environ['DB_USER'],
-        "PASSWORD":os.environ['DB_PASS'],
+        "NAME": "exizprint",
+        "USER": "ank3r",
+        "PASSWORD": "Kaifi@9580",
         "HOST": "localhost",
         "PORT": "",
     }
@@ -173,38 +174,38 @@ REST_KNOX = {
 
 ###----Emailing Settings----###
 
-#EMAIL_BACKEND = "post_office.EmailBackend"
-#EMAIL_HOST = "smtp-mail.outlook.com"
-#EMAIL_HOST_USER =os.environ['EMAIL_USER']
-#EMAIL_PORT = 587
-#EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASS']
-#EMAIL_USE_TLS = True
+# EMAIL_BACKEND = "post_office.EmailBackend"
+# EMAIL_HOST = "smtp-mail.outlook.com"
+# EMAIL_HOST_USER =os.environ['EMAIL_USER']
+# EMAIL_PORT = 587
+# EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASS']
+# EMAIL_USE_TLS = True
 
 EMAIL_BACKEND = "post_office.EmailBackend"
 
 EMAIL_HOST = "smtp.hostinger.com"
-EMAIL_HOST_USER =os.environ['EMAIL_USER']
+EMAIL_HOST_USER = "exizprint@ank3r.shop"
 EMAIL_PORT = 465
-EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASS']
+EMAIL_HOST_PASSWORD = "Ank3r@9580"
 EMAIL_USE_SSL = True
 
 
 cred = credentials.Certificate(
-   os.environ['FIREBASE_CERTIFICATE']
+    "/Users/sukuna/Project/excez_print_django/exizprint-35bbe-firebase-adminsdk-hxrn8-21d0aff69b.json"
 )
 firebase_admin.initialize_app(cred)
 
 GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = (
-   os.environ['GSTORAGE_CERTIFICATE']
+    "/Users/sukuna/Project/excez_print_django/vaulted-night-428015-c9-244032317ef9.json"
 )
 GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = "/exizprint/"
 
-p_key = os.environ['RAZORPAY_PUBLIC']
-s_key =os.environ['RAZORPAY_SECRET']
+p_key = "rzp_live_T4OUcMc96AitBE"
+s_key = "SyINQLSp1ULbWi0PDxgUhBXT"
 PAYMENT_VARIANTS = {
     "razorpay": (
         "django_payments_razorpay.RazorPayProvider",
         {"public_key": p_key, "secret_key": s_key},
     ),
 }
-CHECKOUT_PAYMENT_CHOICES = [('razorpay', 'RazorPay')]
+CHECKOUT_PAYMENT_CHOICES = [("razorpay", "RazorPay")]
