@@ -13,7 +13,7 @@ from exizprint.serializers.service_serializer import (
     ServiceSerializer,
     OrderSerializer,
     SerializerOrder,
-    BannerSerializer,CheckoutSerializer
+    BannerSerializer,CheckoutSerializer,CheckOutSerializer,
 )
 from exizprint.models.services import (
     Services,
@@ -159,7 +159,7 @@ class CheckoutView(
 
     def list(self,request):
         query = CheckOut.objects.filter(user=request.user, active = True)
-        serializer = CheckoutSerializer(query, many=True)
+        serializer = CheckOutSerializer(query, many=True)
         return Response(serializer.data)
 
     def create(self, request):
@@ -170,7 +170,7 @@ class CheckoutView(
         data = request.data.copy()
         serializer = CheckoutSerializer(data=data)
         if(serializer.is_valid(raise_exception=True)):
-            checkout = serializer.create(serializer.data)
+            checkout = serializer.create(validated_data=serializer.data)
             print(checkout.id)
             checkout.user  =request.user
             checkout.save()

@@ -69,6 +69,20 @@ class CheckoutSerializer(serializers.ModelSerializer):
             "phone_number",
         ]
 
+class CheckOutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CheckOut
+        fields = [
+            "id",
+            "address",
+            "first_name",
+            "last_name",
+            "pin_code",
+            "house_number",
+            "phone_number",
+        ]
+
+
 class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:

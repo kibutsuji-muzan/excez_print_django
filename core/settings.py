@@ -190,7 +190,8 @@ EMAIL_USE_SSL = True
 
 
 cred = credentials.Certificate(
-   os.environ['FIREBASE_CERTIFICATE']
+#   os.environ['FIREBASE_CERTIFICATE']
+'/home/ubuntu/exizprint/exizprint-7f9f1-30a160476913.json'
 )
 firebase_admin.initialize_app(cred)
 
