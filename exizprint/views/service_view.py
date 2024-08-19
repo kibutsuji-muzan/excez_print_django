@@ -167,12 +167,19 @@ class CheckoutView(
             ordr = Orders.objects.get(id=request.data.get('order_id'))
         except:
             return Response('No order found', status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            save = bool(int(request.data.get('order_id')))
+        except:
+            save = False
         data = request.data.copy()
         serializer = CheckoutSerializer(data=data)
         if(serializer.is_valid(raise_exception=True)):
             checkout = serializer.create(validated_data=serializer.data)
             print(checkout.id)
             checkout.user  =request.user
+            if (not save):
+                checkout.active = False
             checkout.save()
             ordr.checkout = checkout
             return Response("Checkout data saved")
@@ -184,9 +191,9 @@ class CheckoutView(
         url_name="set_checkout",
         url_path="set-checkout",
     )
-    def setcheckout(self, request, pk):
+    def setcheckout(self, request):
         try:
-            co = CheckOut.objects.get(id=pk)
+            co = CheckOut.objects.get(id=request.data.get('checkout_id'))
             ordr = Orders.objects.get(id=request.data.get('order_id'))
         except:
             return Response('object not found', status=status.HTTP_400_BAD_REQUEST)
@@ -196,7 +203,7 @@ class CheckoutView(
         
     @action(
         methods=["delete"],
-        detail=True,
+        detail=False,
         url_name="delete_checkout",
         url_path="delete-checkout",
     )
