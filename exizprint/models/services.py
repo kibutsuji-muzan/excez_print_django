@@ -24,6 +24,17 @@ permission =  GoogleDriveFilePermission(
 # Define Google Drive Storage
 gd_storage = GoogleDriveStorage(permissions=(permission,))
 
+class CheckOut(models.Model):
+    id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
+    address = models.CharField(_("address"),max_length=100,null=False, blank=False)
+    first_name = models.CharField(_("First Name"),max_length=100,null=False, blank=False)
+    last_name = models.CharField(_("Last Name"),max_length=100,null=False, blank=False)
+    pin_code = models.IntegerField(_("Pin Code"),null=False, blank=False)
+    house_number = models.CharField(_("House Number"),max_length=100,null=False, blank=False)
+    phone_number = PhoneNumberField(_("Phone Number"),region="IN", null = False)
+    active = models.BooleanField(default=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='checkout')
+
 class Services(models.Model):
      id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
      parent = models.ForeignKey('Services',on_delete=models.CASCADE,null=True,blank=True)
@@ -60,8 +71,8 @@ class Orders(models.Model):
     quantity = models.IntegerField(_("Quantity"), null=False,blank=False)
     payment_status = models.BooleanField(_("Payment Status"), default=False)
     status = models.CharField(_('Status'),choices=STATUS, blank=True, null=True, default='unpaid')
-
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True, related_name='orders')
+    checkout = models.ForeignKey(CheckOut,on_delete=models.SET_NULL,null=True, blank=True)
 
 class KeyValue(models.Model):
     id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
@@ -111,12 +122,3 @@ class PaymentModel(models.Model):
     razorpay_signature =  models.CharField(max_length=100,null=False, blank=False)
     ordr = models.ForeignKey(Orders,on_delete=models.SET_NULL,null=True, blank=False)
 
-class CheckOut(models.Model):
-    address = models.CharField(_("address"),max_length=100,null=False, blank=False)
-    first_name = models.CharField(_("First Name"),max_length=100,null=False, blank=False)
-    last_name = models.CharField(_("Last Name"),max_length=100,null=False, blank=False)
-    pin_code = models.IntegerField(_("Pin Code"),null=False, blank=False)
-    house_number = models.CharField(_("House Number"),max_length=100,null=False, blank=False)
-    phone_number = PhoneNumberField(_("Phone Number"),region="IN", null = False)
-    active = models.BooleanField(default=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='checkout')

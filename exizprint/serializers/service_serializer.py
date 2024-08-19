@@ -67,15 +67,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
             "pin_code",
             "house_number",
             "phone_number",
-            "user",
         ]
-
-    # def validate(self, data):
-
-
-    # def create(self, validated_data):
-
-    #     return super().create(validated_data)
 
 class OrderSerializer(serializers.ModelSerializer):
 
