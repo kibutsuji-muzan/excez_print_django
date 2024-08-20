@@ -32,7 +32,7 @@ CELERY_TIMEZONE = 'Asia/Kolkata'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["18.205.27.242", "localhost","127.0.0.1"]
+ALLOWED_HOSTS = [os.environ['DJANGO_ALLOWED_HOST'], "localhost","127.0.0.1"]
 
 # Application definition
 
@@ -98,9 +98,9 @@ CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "exizprint",
-        "USER": "ank3r",
-        "PASSWORD":"Kaifi@9580",
+        "NAME": os.environ['DB_NAME'],
+        "USER": os.environ['DB_USER'],
+        "PASSWORD":os.environ['DB_PASS'],
         "HOST": "localhost",
         "PORT": "",
     }
@@ -183,25 +183,25 @@ REST_KNOX = {
 EMAIL_BACKEND = "post_office.EmailBackend"
 
 EMAIL_HOST = "smtp.hostinger.com"
-EMAIL_HOST_USER ="exizprint@ank3r.shop"
+EMAIL_HOST_USER =os.environ['EMAIL_USER']
 EMAIL_PORT = 465
-EMAIL_HOST_PASSWORD = "Ank3r@9580"
+EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASS']
 EMAIL_USE_SSL = True
 
 
 cred = credentials.Certificate(
-#   os.environ['FIREBASE_CERTIFICATE']
-"/Users/sukuna/Project/excez_print_django/exizprint-7f9f1-30a160476913.json"
+    '/home/ubuntu/exizprint/exizprint-7f9f1-30a160476913.json'
+#    os.environ['FIREBASE_CERTIFICATE']
 )
 firebase_admin.initialize_app(cred)
 
 GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = (
-   "/Users/sukuna/Project/excez_print_django/vaulted-night-428015-c9-244032317ef9.json"
+   os.environ['GSTORAGE_CERTIFICATE']
 )
 GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = "/exizprint/"
 
-p_key = "rzp_live_T4OUcMc96AitBE"
-s_key ="SyINQLSp1ULbWi0PDxgUhBXT"
+p_key = os.environ['RAZORPAY_PUBLIC']
+s_key =os.environ['RAZORPAY_SECRET']
 
 PAYMENT_VARIANTS = {
     "razorpay": (
