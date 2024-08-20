@@ -37,16 +37,22 @@ class CheckOut(models.Model):
 
 class Services(models.Model):
      id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
-     parent = models.ForeignKey('Services',on_delete=models.CASCADE,null=True,blank=True)
      name = models.CharField(_('Service Name'), max_length=20, blank=False, null=True)
+     parent = models.ForeignKey('Services',on_delete=models.CASCADE,null=True,blank=True)
      desc = models.CharField(_('Description'), max_length=150, blank=True, null=True)
-     image = models.ImageField(_("Image"), upload_to="ServiceImage/", default="ProfileImages/download.jpeg", validators=[FileTypeValidator(allowed_types=[ 'image/*'])])
+     image = models.ImageField(_("Image"), upload_to="ServiceImage/", validators=[FileTypeValidator(allowed_types=[ 'image/*'])])
      def __str__(self):
         return str(self.name)
 
      class Meta:
         verbose_name = _("Service")
         verbose_name_plural = _("Services")
+
+class ServiceImages(models.Model):
+     id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
+     title = models.CharField(_('Service Title'), max_length=20, blank=True, null=True)
+     image = models.ImageField(_("Image"), upload_to="ServiceImage/", validators=[FileTypeValidator(allowed_types=[ 'image/*'])])
+     service = models.ForeignKey(Services, on_delete=models.SET_NULL,null=True,related_name='images')
 
 class FormFieldName(models.Model):
     types = [('txt', 'Text'), ('ch', 'Choices'), ('int', 'Number'), ('file', 'File')]

@@ -12,7 +12,7 @@ from exizprint.models.services import (
     PaymentModel,
     TempFileField,
     ServiceRate,
-    CheckOut,
+    CheckOut,ServiceImages,
 )
 from core.task import SendMail, upload_to_google
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -32,14 +32,21 @@ class ServicePriceSerializer(serializers.ModelSerializer):
         model = ServiceRate
         fields = ["above", "price"]
 
+class ServiceImagesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ServiceImages
+        fields = ["title", "image"]
+
 
 class ServiceSerializer(serializers.ModelSerializer):
     field = FormFieldNameSerializer(many=True)
     price = ServicePriceSerializer(many=True)
+    images = ServiceImagesSerializer(many=True)
 
     class Meta:
         model = Services
-        fields = ["name", "id", "desc", "field", "parent", "image", "price"]
+        fields = ["name", "id", "desc", "field", "parent", "image", "price","images"]
 
 
 class SerializerOrder(serializers.ModelSerializer):

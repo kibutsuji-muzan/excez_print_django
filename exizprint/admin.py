@@ -1,5 +1,5 @@
 from django.contrib import admin
-from exizprint.models.services import Services,FormFieldName, Orders, KeyValue, NotificationToken, Notification,Banner, FileField, PaymentModel, ServiceRate, CheckOut
+from exizprint.models.services import Services,FormFieldName, Orders, KeyValue, NotificationToken, Notification,Banner, FileField, PaymentModel, ServiceRate, CheckOut, ServiceImages
 
 admin.site.register(NotificationToken)
 admin.site.register(Banner)
@@ -15,6 +15,10 @@ class FileFieldInline(admin.TabularInline):
     model = FileField
     extra = 0
 
+class ServiceImagesInline(admin.TabularInline):
+    model = ServiceImages
+    extra = 0
+
 class PriceServiceInline(admin.TabularInline):
     model = ServiceRate
     extra = 0
@@ -25,7 +29,7 @@ class KeyValueInline(admin.TabularInline):
 
 @admin.register(Services)
 class ServiceAdmin(admin.ModelAdmin):
-    inlines = [FormFieldInline, PriceServiceInline]
+    inlines = [FormFieldInline, PriceServiceInline, ServiceImagesInline]
 
 @admin.register(Orders)
 class OrderAdmin(admin.ModelAdmin):
