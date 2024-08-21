@@ -489,9 +489,9 @@ class NotificationView(viewsets.GenericViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         token = NotificationToken.objects.filter(token=tkn)
         if request.user.is_anonymous:
-            query = Notification.objects.filter(token=token[0], user=None)
+            query = Notification.objects.filter(token=token[0], user=None).order_by('-created_at')
         else:
-            query = Notification.objects.filter(user=request.user)
+            query = Notification.objects.filter(user=request.user).order_by('-created_at')
         serializer = NotificationSerializer(query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

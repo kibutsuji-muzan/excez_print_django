@@ -135,20 +135,6 @@ class OrdersView(
             )
         return Response("something went wrong", status=status.HTTP_400_BAD_REQUEST)
 
-    # @action(
-    #     methods=["get"],
-    #     detail=True,
-    #     url_name="create_checkout",
-    #     url_path="create-checkout",
-    # )
-    # def createCheckout(self, request):
-    #     serializer = CheckoutSerializer(data = request.data)
-    #     if serializer.is_valid(raise_exception=True):
-    #         serializer.create()
-    #         return Response("Checkout Created")
-    #     return Response("somethig went wrong", status=status.HTTP_400_BAD_REQUEST)
-
-
 class CheckoutView(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
