@@ -154,7 +154,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["message", "title", "image", "created_at"]
+        fields = ["id", "message", "title", "image", "created_at"]
 
 
 class BannerSerializer(serializers.ModelSerializer):

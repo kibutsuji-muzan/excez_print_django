@@ -443,6 +443,22 @@ class AccountsManagement(
         return Response("Password Is Required", status=status.HTTP_400_BAD_REQUEST)
 
     @action(
+        methods=["get"],
+        detail=False,
+        url_name="logout",
+        url_path="logout",
+        permission_classes=[
+            IsAuthenticated,
+        ],
+    )
+    def logout(self, request):
+        AuthToken.objects.filter(user=request.user.id).delete()
+        return Response(status=status.HTTP_200_OK)
+
+
+class NotificationView(viewsets.GenericViewSet):
+
+    @action(
         methods=["post"],
         detail=False,
         url_name="fcmT",
@@ -461,7 +477,7 @@ class AccountsManagement(
     @action(
         methods=["get"],
         detail=False,
-        url_name="get-notification",
+        url_name="get_notification",
         url_path="get-notification",
     )
     def get_notification(self, request):
@@ -475,28 +491,58 @@ class AccountsManagement(
         if request.user.is_anonymous:
             query = Notification.objects.filter(token=token[0], user=None)
         else:
-            query = Notification.objects.filter(
-                Q(token=token[0]) or Q(user=request.user)
-            )
+            query = Notification.objects.filter(user=request.user)
         serializer = NotificationSerializer(query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=["get"],
-        detail=False,
-        url_name="logout",
-        url_path="logout",
-        permission_classes=[
-            IsAuthenticated,
-        ],
+        detail=True,
+        url_name="delete_notification",
+        url_path="delete-notification",
     )
-    def logout(self, request):
-        for token in NotificationToken.objects.filter(user=request.user):
-            token.user = None
-            token.save()
-        AuthToken.objects.filter(user=request.user.id).delete()
-        return Response(status=status.HTTP_200_OK)
-
+    def delete_notification(self, request, pk):
+        try:
+            tkn = (
+                str(request.META.get("QUERY_STRING")).split("=")[1].replace("%3A", ":")
+            )
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            noti = Notification.objects.get(id=pk)
+            print(len(noti.token.all()))
+            if(len(noti.token.all()) == 1):
+                print(noti)
+                noti.delete()
+            else:
+                print(noti)
+                token = NotificationToken.objects.filter(token=tkn)
+                noti.token.remove(token[0])
+        except:
+            return Response('No Notification Found', status=status.HTTP_400_BAD_REQUEST)
+        return Response('Notification Deleted')
+    
+    @action(
+        methods=["get"],
+        detail=True,
+        url_name="delete_all_notification",
+        url_path="delete-all-notification",
+    )
+    def delete_all_notification(self, request):
+        try:
+            tkn = (
+                str(request.META.get("QUERY_STRING")).split("=")[1].replace("%3A", ":")
+            )
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        for n in request.data.get('ids'):
+            noti = Notification.objects.get(id=n)
+            if(len(noti.token.all()) == 1):
+                noti.delete()
+            else:
+                token = NotificationToken.objects.filter(token=tkn)
+                noti.token.remove(token[0])
+        return Response('Notifications Deleted')
 
 class PasswordRest(View):
 

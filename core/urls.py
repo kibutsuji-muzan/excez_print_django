@@ -20,7 +20,7 @@ from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
 
-from accounts.views.AccountsView import AccountsManagement, PasswordRest
+from accounts.views.AccountsView import AccountsManagement, PasswordRest, NotificationView
 from exizprint.views.service_view import ServiceView, OrdersView, PaymentPortal, PrivacyPolicy, CheckoutView
 
 router = DefaultRouter()
@@ -31,6 +31,7 @@ router.register(r'accounts', AccountsManagement, basename='accounts')
 router.register(r'payment', PaymentPortal, basename='payment')
 router.register(r'p', PrivacyPolicy, basename='privacy')
 router.register(r'checkout', CheckoutView, basename='checkout')
+router.register(r'notification', NotificationView, basename='notification')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
