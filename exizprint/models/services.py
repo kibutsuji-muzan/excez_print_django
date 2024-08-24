@@ -62,10 +62,6 @@ class FormFieldName(models.Model):
     value = models.CharField(_('values if needed'),null=True,blank=True)
     field_type = models.CharField(_("FormFieldType"),choices=types)
 
-    def save(self, *args, **kwargs):
-        self.field_name = self.field_name.lower()
-        return super(FormFieldName, self).save(*args, **kwargs)
-
 class ServiceRate(models.Model):
     service = models.ForeignKey(Services, on_delete=models.CASCADE,related_name='price')
     above = models.FloatField(_('Above Quantity'),null=True,blank=True)

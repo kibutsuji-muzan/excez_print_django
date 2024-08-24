@@ -20,7 +20,7 @@ from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
 
-from accounts.views.AccountsView import AccountsManagement, PasswordRest, NotificationView
+from accounts.views.AccountsView import AccountsManagement, PasswordRest, NotificationView, DeleteAccount, deleteSuccess
 from exizprint.views.service_view import ServiceView, OrdersView, PaymentPortal, PrivacyPolicy, CheckoutView
 
 router = DefaultRouter()
@@ -36,7 +36,8 @@ router.register(r'notification', NotificationView, basename='notification')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/<token>/password-reset', PasswordRest.as_view()),
-    # path('test', testview),
+    path('accounts/delete-account', DeleteAccount.as_view()),
+    path('accounts/<token>/delete-success', deleteSuccess),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)+static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 urlpatterns += router.urls

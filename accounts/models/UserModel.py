@@ -82,3 +82,14 @@ class PassResetToken(models.Model):
 
     def __str__(self):
         return self.token
+
+class DeleteToken(models.Model):
+
+    id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
+    user = models.OneToOneField(User, verbose_name=_("User"), on_delete=models.CASCADE, related_name='reset_token')
+    token = models.CharField(_("Token-Key"), max_length=70, unique=True)
+    expiry = models.DateTimeField(_("Expiry"), auto_now=False, auto_now_add=False, default=expiryTime(False))
+    created_at = models.DateTimeField(_("Ceated At"), auto_now_add=True)
+
+    def __str__(self):
+        return self.token

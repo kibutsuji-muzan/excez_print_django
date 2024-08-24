@@ -6,7 +6,7 @@ from accounts.serializers.AccountSerializer import (
     ChangePasswordSerializer,
     UserSerializer,
 )
-from accounts.models.UserModel import User, PassResetToken, token as tk
+from accounts.models.UserModel import User, PassResetToken, DeleteToken, token as tk
 from accounts.models.OTPModel import OTPToken
 
 # from core.signals import Send_Mail, SendMail
@@ -33,7 +33,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.views import View
 from django.shortcuts import render, redirect
-from accounts.forms.reset_password import PasswordRestForm
+from accounts.forms.reset_password import PasswordRestForm, DeleteUserForm, OTPForm
 
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
@@ -82,6 +82,19 @@ class Base:
 
         return token
 
+    def create_delet_token(self, user):
+        key = DeleteToken.objects.filter(user=user)
+        if len(key):
+            print(key)
+            print("k") if key[0].delete() else print("s")
+            token = DeleteToken.objects.create(user=user, token=tk())
+            token.refresh_from_db()
+        else:
+            token = DeleteToken.objects.create(user=user, token=tk())
+            token.refresh_from_db()
+
+        return token
+
     def get_user(self, pk):
         try:
             user = User.objects.get(email=pk)
@@ -123,6 +136,18 @@ class Base:
             "mail":  "get-reset-link",
             "mail": "get-reset-link",
             "context": {"reset_link": reset_link},
+            "email": user.email,
+            "priority": "now",
+        }
+        SendMail.delay(maildata)
+        return True
+
+    def send_user_delete_link(self, user, token, request, e_or_p):
+        delete_link = f'http://18.205.27.242/accounts/{token.token}/delete-account'
+        maildata = {
+            "mail":  "get-delete-link",
+            "mail": "get-delete-link",
+            "context": {"delete-link": delete_link},
             "email": user.email,
             "priority": "now",
         }
@@ -422,9 +447,6 @@ class AccountsManagement(
         detail=False,
         url_name="delete_user",
         url_path="delete-user",
-        permission_classes=[
-            IsAuthenticated,
-        ],
     )
     def delete_user(self, request):
         try:
@@ -514,10 +536,8 @@ class NotificationView(viewsets.GenericViewSet):
             if(not request.user.is_anonymous):
                 noti.delete()
             elif(len(noti.token.all()) == 1):
-                print(noti)
                 noti.delete()
             else:
-                print(noti)
                 token = NotificationToken.objects.filter(token=tkn)
                 noti.token.remove(token[0])
         except:
@@ -549,7 +569,6 @@ class NotificationView(viewsets.GenericViewSet):
 class PasswordRest(View):
 
     def get(self, request, token):
-        print(token)
         try:
             tkn = PassResetToken.objects.get(token=token)
         except:
@@ -585,3 +604,33 @@ class PasswordRest(View):
             error = "Correct Below Errors"
             print(Form.errors)
             return render(request, "ResetPassword.html", {"form": Form, "error": error})
+
+class DeleteAccount(View):
+
+    def get(self, request):
+        return render(request, "DeleteUser.html", {"form": DeleteUserForm()})
+
+    def post(self, request):
+        data = request.POST
+        Form = DeleteUserForm(data)
+        if Form.is_valid():
+            try:
+                user = User.objects.get(email = request.data.get('email'))
+            except:
+                return render(request, '404.html')
+            token = self.create_delet_token(user=user)
+            if self.send_user_delete_link(user, token, request, user.email):
+                return render(request, "DleteLinkSendSuccessful.html.html")
+            return render(request, "404.html")
+        else:
+            error = "Correct Below Errors"
+            return render(request, "DeleteUser.html", {"form": Form, "error": error})
+        
+def deleteSuccess(requset, pk):
+    try:
+        token = DeleteToken.objects.get(id=pk)
+    except:
+        return render(requset, '404.html')
+    user = token.user
+    user.delete()
+    return render(requset, 'DeleteSuccess.html')
