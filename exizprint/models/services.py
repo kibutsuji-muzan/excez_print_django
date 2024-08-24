@@ -39,7 +39,7 @@ class Services(models.Model):
      id = models.UUIDField(_('UUID'), default=uuid.uuid4, null=False , primary_key=True, editable=False)
      name = models.CharField(_('Service Name'), max_length=20, blank=False, null=True)
      parent = models.ForeignKey('Services',on_delete=models.CASCADE,null=True,blank=True)
-     desc = models.CharField(_('Description'), max_length=150, blank=True, null=True)
+     desc = models.TextField(_('Description'), blank=True, null=True)
      image = models.ImageField(_("Image"), upload_to="ServiceImage/", validators=[FileTypeValidator(allowed_types=[ 'image/*'])])
      def __str__(self):
         return str(self.name)
@@ -61,6 +61,10 @@ class FormFieldName(models.Model):
     field_name = models.CharField(_('Field'),max_length=20,null=True)
     value = models.CharField(_('values if needed'),null=True,blank=True)
     field_type = models.CharField(_("FormFieldType"),choices=types)
+
+    def save(self, *args, **kwargs):
+        self.field_name = self.field_name.lower()
+        return super(FormFieldName, self).save(*args, **kwargs)
 
 class ServiceRate(models.Model):
     service = models.ForeignKey(Services, on_delete=models.CASCADE,related_name='price')

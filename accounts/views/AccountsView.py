@@ -511,7 +511,9 @@ class NotificationView(viewsets.GenericViewSet):
         try:
             noti = Notification.objects.get(id=pk)
             print(len(noti.token.all()))
-            if(len(noti.token.all()) == 1):
+            if(not request.user.is_anonymous):
+                noti.delete()
+            elif(len(noti.token.all()) == 1):
                 print(noti)
                 noti.delete()
             else:
